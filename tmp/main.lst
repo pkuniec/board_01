@@ -1,0 +1,291 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 4.0.0 #11528 (Linux)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module main
+                                      6 	.optsdcc -mstm8
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _main
+                                     12 	.globl _mn_register_cb
+                                     13 	.globl _uart_puts
+                                     14 	.globl _uart_init
+                                     15 	.globl _nrf_register_cb
+                                     16 	.globl _nrf_event
+                                     17 	.globl _nrf_rx_enable
+                                     18 	.globl _nrf_reset
+                                     19 	.globl _nrf_init_sw
+                                     20 	.globl _nrf_init_hw
+                                     21 	.globl _mn_exec
+                                     22 	.globl _nrf_recv
+                                     23 	.globl _output_set
+                                     24 	.globl _spi_init
+                                     25 	.globl _sys_event
+                                     26 	.globl _uart_event
+                                     27 	.globl _setup
+                                     28 	.globl _pload
+                                     29 	.globl _system
+                                     30 	.globl _sys_nrf
+                                     31 	.globl _uart_rx_Buff
+                                     32 	.globl _uart_tx_Buff
+                                     33 ;--------------------------------------------------------
+                                     34 ; ram data
+                                     35 ;--------------------------------------------------------
+                                     36 	.area DATA
+      000000                         37 _uart_tx_Buff::
+      000000                         38 	.ds 4
+      000004                         39 _uart_rx_Buff::
+      000004                         40 	.ds 4
+      000008                         41 _sys_nrf::
+      000008                         42 	.ds 13
+      000015                         43 _system::
+      000015                         44 	.ds 1
+                                     45 ;--------------------------------------------------------
+                                     46 ; ram data
+                                     47 ;--------------------------------------------------------
+                                     48 	.area INITIALIZED
+      000000                         49 _pload::
+      000000                         50 	.ds 4
+                                     51 ;--------------------------------------------------------
+                                     52 ; Stack segment in internal ram 
+                                     53 ;--------------------------------------------------------
+                                     54 	.area	SSEG
+      000000                         55 __start__stack:
+      000000                         56 	.ds	1
+                                     57 
+                                     58 ;--------------------------------------------------------
+                                     59 ; absolute external ram data
+                                     60 ;--------------------------------------------------------
+                                     61 	.area DABS (ABS)
+                                     62 
+                                     63 ; default segment ordering for linker
+                                     64 	.area HOME
+                                     65 	.area GSINIT
+                                     66 	.area GSFINAL
+                                     67 	.area CONST
+                                     68 	.area INITIALIZER
+                                     69 	.area CODE
+                                     70 
+                                     71 ;--------------------------------------------------------
+                                     72 ; interrupt vector 
+                                     73 ;--------------------------------------------------------
+                                     74 	.area HOME
+      000000                         75 __interrupt_vect:
+      000000 82v00u00u00             76 	int s_GSINIT ; reset
+      000004 82 00 00 00             77 	int 0x000000 ; trap
+      000008 82 00 00 00             78 	int 0x000000 ; int0
+      00000C 82 00 00 00             79 	int 0x000000 ; int1
+      000010 82 00 00 00             80 	int 0x000000 ; int2
+      000014 82 00 00 00             81 	int 0x000000 ; int3
+      000018 82 00 00 00             82 	int 0x000000 ; int4
+      00001C 82v00u00u00             83 	int _exti2_irq ; int5
+      000020 82 00 00 00             84 	int 0x000000 ; int6
+      000024 82 00 00 00             85 	int 0x000000 ; int7
+      000028 82 00 00 00             86 	int 0x000000 ; int8
+      00002C 82 00 00 00             87 	int 0x000000 ; int9
+      000030 82 00 00 00             88 	int 0x000000 ; int10
+      000034 82 00 00 00             89 	int 0x000000 ; int11
+      000038 82 00 00 00             90 	int 0x000000 ; int12
+      00003C 82 00 00 00             91 	int 0x000000 ; int13
+      000040 82 00 00 00             92 	int 0x000000 ; int14
+      000044 82 00 00 00             93 	int 0x000000 ; int15
+      000048 82 00 00 00             94 	int 0x000000 ; int16
+      00004C 82v00u00u00             95 	int _uart1_tx ; int17
+      000050 82v00u00u00             96 	int _uart1_rx ; int18
+      000054 82 00 00 00             97 	int 0x000000 ; int19
+      000058 82 00 00 00             98 	int 0x000000 ; int20
+      00005C 82 00 00 00             99 	int 0x000000 ; int21
+      000060 82 00 00 00            100 	int 0x000000 ; int22
+      000064 82v00u00u00            101 	int _tim4_update ; int23
+                                    102 ;--------------------------------------------------------
+                                    103 ; global & static initialisations
+                                    104 ;--------------------------------------------------------
+                                    105 	.area HOME
+                                    106 	.area GSINIT
+                                    107 	.area GSFINAL
+                                    108 	.area GSINIT
+      000000                        109 __sdcc_gs_init_startup:
+      000000                        110 __sdcc_init_data:
+                                    111 ; stm8_genXINIT() start
+      000000 AEr00r00         [ 2]  112 	ldw x, #l_DATA
+      000003 27 07            [ 1]  113 	jreq	00002$
+      000005                        114 00001$:
+      000005 72 4FuFFuFF      [ 1]  115 	clr (s_DATA - 1, x)
+      000009 5A               [ 2]  116 	decw x
+      00000A 26 F9            [ 1]  117 	jrne	00001$
+      00000C                        118 00002$:
+      00000C AEr00r00         [ 2]  119 	ldw	x, #l_INITIALIZER
+      00000F 27 09            [ 1]  120 	jreq	00004$
+      000011                        121 00003$:
+      000011 D6uFFuFF         [ 1]  122 	ld	a, (s_INITIALIZER - 1, x)
+      000014 D7uFFuFF         [ 1]  123 	ld	(s_INITIALIZED - 1, x), a
+      000017 5A               [ 2]  124 	decw	x
+      000018 26 F7            [ 1]  125 	jrne	00003$
+      00001A                        126 00004$:
+                                    127 ; stm8_genXINIT() end
+                                    128 	.area GSFINAL
+      000000 CCr00r68         [ 2]  129 	jp	__sdcc_program_startup
+                                    130 ;--------------------------------------------------------
+                                    131 ; Home
+                                    132 ;--------------------------------------------------------
+                                    133 	.area HOME
+                                    134 	.area HOME
+      000068                        135 __sdcc_program_startup:
+      000068 CCr00r00         [ 2]  136 	jp	_main
+                                    137 ;	return from main will return to caller
+                                    138 ;--------------------------------------------------------
+                                    139 ; code
+                                    140 ;--------------------------------------------------------
+                                    141 	.area CODE
+                                    142 ;	src/main.c: 19: int main(void) {
+                                    143 ; genLabel
+                                    144 ;	-----------------------------------------
+                                    145 ;	 function main
+                                    146 ;	-----------------------------------------
+                                    147 ;	Register assignment might be sub-optimal.
+                                    148 ;	Stack space usage: 20 bytes.
+      000000                        149 _main:
+      000000 52 14            [ 2]  150 	sub	sp, #20
+                                    151 ;	src/main.c: 24: uart_tx_Buff.buffer = tx_Buff;
+                                    152 ; skipping iCode since result will be rematerialized
+                                    153 ; genAddrOf
+      000002 96               [ 1]  154 	ldw	x, sp
+      000003 5C               [ 1]  155 	incw	x
+                                    156 ; genCast
+                                    157 ; genAssign
+                                    158 ; genPointerSet
+      000004 CFu00u00         [ 2]  159 	ldw	_uart_tx_Buff+0, x
+                                    160 ;	src/main.c: 25: uart_tx_Buff.head = 0;
+                                    161 ; skipping iCode since result will be rematerialized
+                                    162 ; genPointerSet
+      000007 35 00u00u02      [ 1]  163 	mov	_uart_tx_Buff+2, #0x00
+                                    164 ;	src/main.c: 26: uart_tx_Buff.tail = 0;
+                                    165 ; skipping iCode since result will be rematerialized
+                                    166 ; genPointerSet
+      00000B 35 00u00u03      [ 1]  167 	mov	_uart_tx_Buff+3, #0x00
+                                    168 ;	src/main.c: 28: uart_rx_Buff.buffer = rx_Buff;
+                                    169 ; skipping iCode since result will be rematerialized
+                                    170 ; genAddrOf
+      00000F 96               [ 1]  171 	ldw	x, sp
+      000010 1C 00 09         [ 2]  172 	addw	x, #9
+                                    173 ; genCast
+                                    174 ; genAssign
+                                    175 ; genPointerSet
+      000013 CFu00u04         [ 2]  176 	ldw	_uart_rx_Buff+0, x
+                                    177 ;	src/main.c: 29: uart_rx_Buff.head = 0;
+                                    178 ; skipping iCode since result will be rematerialized
+                                    179 ; genPointerSet
+      000016 35 00u00u06      [ 1]  180 	mov	_uart_rx_Buff+2, #0x00
+                                    181 ;	src/main.c: 30: uart_rx_Buff.tail = 0;
+                                    182 ; skipping iCode since result will be rematerialized
+                                    183 ; genPointerSet
+      00001A 35 00u00u07      [ 1]  184 	mov	_uart_rx_Buff+3, #0x00
+                                    185 ;	src/main.c: 34: setup();
+                                    186 ; genCall
+      00001E CDr00r00         [ 4]  187 	call	_setup
+                                    188 ;	src/main.c: 35: nrf_init_hw();
+                                    189 ; genCall
+      000021 CDr00r00         [ 4]  190 	call	_nrf_init_hw
+                                    191 ;	src/main.c: 36: spi_init();
+                                    192 ; genCall
+      000024 CDr00r00         [ 4]  193 	call	_spi_init
+                                    194 ;	src/main.c: 37: output_set(R_NRF, 1);
+                                    195 ; genIPush
+      000027 4B 01            [ 1]  196 	push	#0x01
+                                    197 ; genIPush
+      000029 4B 00            [ 1]  198 	push	#0x00
+                                    199 ; genCall
+      00002B CDr00r00         [ 4]  200 	call	_output_set
+      00002E 5B 02            [ 2]  201 	addw	sp, #2
+                                    202 ;	src/main.c: 38: uart_init();    
+                                    203 ; genCall
+      000030 CDr00r00         [ 4]  204 	call	_uart_init
+                                    205 ;	src/main.c: 41: mn_register_cb( mn_exec );
+                                    206 ; genIPush
+      000033 4Br00            [ 1]  207 	push	#<(_mn_exec + 0)
+      000035 4Bs00            [ 1]  208 	push	#((_mn_exec + 0) >> 8)
+                                    209 ; genCall
+      000037 CDr00r00         [ 4]  210 	call	_mn_register_cb
+      00003A 5B 02            [ 2]  211 	addw	sp, #2
+                                    212 ;	src/main.c: 42: nrf_register_cb( nrf_recv );
+                                    213 ; genIPush
+      00003C 4Br00            [ 1]  214 	push	#<(_nrf_recv + 0)
+      00003E 4Bs00            [ 1]  215 	push	#((_nrf_recv + 0) >> 8)
+                                    216 ; genCall
+      000040 CDr00r00         [ 4]  217 	call	_nrf_register_cb
+      000043 5B 02            [ 2]  218 	addw	sp, #2
+                                    219 ;	src/main.c: 43: nrf_reset();
+                                    220 ; genCall
+      000045 CDr00r00         [ 4]  221 	call	_nrf_reset
+                                    222 ;	src/main.c: 44: nrf_init_sw();
+                                    223 ; genCall
+      000048 CDr00r00         [ 4]  224 	call	_nrf_init_sw
+                                    225 ;	src/main.c: 45: nrf_rx_enable();
+                                    226 ; genCall
+      00004B CDr00r00         [ 4]  227 	call	_nrf_rx_enable
+                                    228 ;	src/main.c: 48: rim();
+                                    229 ;	genInline
+      00004E 9A               [ 1]  230 	rim
+                                    231 ;	src/main.c: 50: const uint8_t hello[] = {"STM"};
+                                    232 ; skipping iCode since result will be rematerialized
+                                    233 ; genPointerSet
+      00004F A6 53            [ 1]  234 	ld	a, #0x53
+      000051 6B 11            [ 1]  235 	ld	(0x11, sp), a
+                                    236 ; genPlus
+      000053 96               [ 1]  237 	ldw	x, sp
+      000054 1C 00 12         [ 2]  238 	addw	x, #18
+                                    239 ; genPointerSet
+      000057 A6 54            [ 1]  240 	ld	a, #0x54
+      000059 F7               [ 1]  241 	ld	(x), a
+                                    242 ; genPlus
+      00005A 96               [ 1]  243 	ldw	x, sp
+      00005B 1C 00 13         [ 2]  244 	addw	x, #19
+                                    245 ; genPointerSet
+      00005E A6 4D            [ 1]  246 	ld	a, #0x4d
+      000060 F7               [ 1]  247 	ld	(x), a
+                                    248 ; genPlus
+      000061 96               [ 1]  249 	ldw	x, sp
+      000062 1C 00 14         [ 2]  250 	addw	x, #20
+                                    251 ; genPointerSet
+      000065 7F               [ 1]  252 	clr	(x)
+                                    253 ;	src/main.c: 51: uart_puts(hello);
+                                    254 ; skipping iCode since result will be rematerialized
+                                    255 ; skipping iCode since result will be rematerialized
+                                    256 ; genIPush
+      000066 96               [ 1]  257 	ldw	x, sp
+      000067 1C 00 11         [ 2]  258 	addw	x, #17
+      00006A 89               [ 2]  259 	pushw	x
+                                    260 ; genCall
+      00006B CDr00r00         [ 4]  261 	call	_uart_puts
+      00006E 5B 02            [ 2]  262 	addw	sp, #2
+                                    263 ;	src/main.c: 54: while( 1 ) {
+                                    264 ; genLabel
+      000070                        265 00102$:
+                                    266 ;	src/main.c: 55: uart_event();
+                                    267 ; genCall
+      000070 CDr00r00         [ 4]  268 	call	_uart_event
+                                    269 ;	src/main.c: 56: sys_event();
+                                    270 ; genCall
+      000073 CDr00r00         [ 4]  271 	call	_sys_event
+                                    272 ;	src/main.c: 57: nrf_event();
+                                    273 ; genCall
+      000076 CDr00r00         [ 4]  274 	call	_nrf_event
+                                    275 ; genGoto
+      000079 CCr00r70         [ 2]  276 	jp	00102$
+                                    277 ; genLabel
+      00007C                        278 00104$:
+                                    279 ;	src/main.c: 68: }
+                                    280 ; genEndFunction
+      00007C 5B 14            [ 2]  281 	addw	sp, #20
+      00007E 81               [ 4]  282 	ret
+                                    283 	.area CODE
+                                    284 	.area CONST
+                                    285 	.area INITIALIZER
+      000000                        286 __xinit__pload:
+      000000 43                     287 	.db #0x43	; 67	'C'
+      000001 43                     288 	.db #0x43	; 67	'C'
+      000002 43                     289 	.db #0x43	; 67	'C'
+      000003 43                     290 	.db #0x43	; 67	'C'
+                                    291 	.area CABS (ABS)

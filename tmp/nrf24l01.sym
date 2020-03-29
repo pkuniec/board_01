@@ -1,0 +1,53 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (STMicroelectronics STM8), page 1.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.                                                    =  002710 L
+    .__.ABS.                                                    =  000000 G
+    .__.CPU.                                                    =  000000 L
+    .__.H$L.                                                    =  000001 L
+    _delay                                                         ****** GX
+  9 _nrf_ce_high                                                   0002DB GR
+  9 _nrf_ce_low                                                    0002D2 GR
+  9 _nrf_clear_rxbuff                                              0002A4 GR
+  9 _nrf_csn_disable                                               0002C0 GR
+  9 _nrf_csn_enable                                                0002B7 GR
+  9 _nrf_event                                                     000229 GR
+  9 _nrf_init_hw                                                   000000 GR
+  9 _nrf_init_sw                                                   000060 GR
+  9 _nrf_power                                                     000031 GR
+  9 _nrf_powerdown                                                 000155 GR
+  9 _nrf_read_rx                                                   0001D5 GR
+  9 _nrf_readreg                                                   0002F5 GR
+  9 _nrf_register_cb                                               000222 GR
+  9 _nrf_reset                                                     0000FD GR
+  9 _nrf_rx_enable                                                 00016A GR
+  9 _nrf_sendcmd                                                   0002E4 GR
+  9 _nrf_tx_enable                                                 0001A0 GR
+  9 _nrf_write_tx                                                  000203 GR
+  9 _nrf_writereg                                                  00030E GR
+  9 _nrf_writereg_many                                             000327 GR
+    _output_set                                                    ****** GX
+    _spi_transmit                                                  ****** GX
+    _sys_nrf                                                       ****** GX
+    _system                                                        ****** GX
+
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (STMicroelectronics STM8), page 2.
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE                                      size      0   flags    0
+   1 DATA                                       size      0   flags    0
+   2 INITIALIZED                                size      0   flags    0
+   3 DABS                                       size      0   flags    8
+   4 HOME                                       size      0   flags    0
+   5 GSINIT                                     size      0   flags    0
+   6 GSFINAL                                    size      0   flags    0
+   7 CONST                                      size      0   flags    0
+   8 INITIALIZER                                size      0   flags    0
+   9 CODE                                       size    36B   flags    0
+   A CABS                                       size      0   flags    8
+

@@ -1,0 +1,766 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 4.0.0 #11528 (Linux)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module mnprot
+                                      6 	.optsdcc -mstm8
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _nrf_sendcmd
+                                     12 	.globl _nrf_write_tx
+                                     13 	.globl _nrf_tx_enable
+                                     14 	.globl _nrf_rx_enable
+                                     15 	.globl _delay
+                                     16 	.globl _mn_frame
+                                     17 	.globl _mn_register_cb
+                                     18 	.globl _mn_send
+                                     19 	.globl _mn_decode_frame
+                                     20 	.globl _mn_execute
+                                     21 	.globl _mn_retransmit
+                                     22 ;--------------------------------------------------------
+                                     23 ; ram data
+                                     24 ;--------------------------------------------------------
+                                     25 	.area DATA
+      000000                         26 _mn_frame::
+      000000                         27 	.ds 24
+      000018                         28 _mn_send_frame_id_65536_73:
+      000018                         29 	.ds 1
+                                     30 ;--------------------------------------------------------
+                                     31 ; ram data
+                                     32 ;--------------------------------------------------------
+                                     33 	.area INITIALIZED
+                                     34 ;--------------------------------------------------------
+                                     35 ; absolute external ram data
+                                     36 ;--------------------------------------------------------
+                                     37 	.area DABS (ABS)
+                                     38 
+                                     39 ; default segment ordering for linker
+                                     40 	.area HOME
+                                     41 	.area GSINIT
+                                     42 	.area GSFINAL
+                                     43 	.area CONST
+                                     44 	.area INITIALIZER
+                                     45 	.area CODE
+                                     46 
+                                     47 ;--------------------------------------------------------
+                                     48 ; global & static initialisations
+                                     49 ;--------------------------------------------------------
+                                     50 	.area HOME
+                                     51 	.area GSINIT
+                                     52 	.area GSFINAL
+                                     53 	.area GSINIT
+                                     54 ;--------------------------------------------------------
+                                     55 ; Home
+                                     56 ;--------------------------------------------------------
+                                     57 	.area HOME
+                                     58 	.area HOME
+                                     59 ;--------------------------------------------------------
+                                     60 ; code
+                                     61 ;--------------------------------------------------------
+                                     62 	.area CODE
+                                     63 ;	src/mnprot.c: 10: void mn_register_cb(mn_execute_cb func) {
+                                     64 ; genLabel
+                                     65 ;	-----------------------------------------
+                                     66 ;	 function mn_register_cb
+                                     67 ;	-----------------------------------------
+                                     68 ;	Register assignment is optimal.
+                                     69 ;	Stack space usage: 0 bytes.
+      000000                         70 _mn_register_cb:
+                                     71 ;	src/mnprot.c: 11: if (func) {
+                                     72 ; genIfx
+      000000 1E 03            [ 2]   73 	ldw	x, (0x03, sp)
+      000002 26 03            [ 1]   74 	jrne	00111$
+      000004 CCr00r10         [ 2]   75 	jp	00102$
+      000007                         76 00111$:
+                                     77 ;	src/mnprot.c: 12: mn_frame.execute = func;
+                                     78 ; skipping iCode since result will be rematerialized
+                                     79 ; genPointerSet
+      000007 AEr00r16         [ 2]   80 	ldw	x, #(_mn_frame + 22)
+      00000A 16 03            [ 2]   81 	ldw	y, (0x03, sp)
+      00000C FF               [ 2]   82 	ldw	(x), y
+                                     83 ; genGoto
+      00000D CCr00r16         [ 2]   84 	jp	00104$
+                                     85 ; genLabel
+      000010                         86 00102$:
+                                     87 ;	src/mnprot.c: 14: mn_frame.execute = NULL;
+                                     88 ; skipping iCode since result will be rematerialized
+                                     89 ; genPointerSet
+      000010 AEr00r16         [ 2]   90 	ldw	x, #(_mn_frame + 22)
+      000013 6F 01            [ 1]   91 	clr	(0x1, x)
+      000015 7F               [ 1]   92 	clr	(x)
+                                     93 ; genLabel
+      000016                         94 00104$:
+                                     95 ;	src/mnprot.c: 16: }
+                                     96 ; genEndFunction
+      000016 81               [ 4]   97 	ret
+                                     98 ;	src/mnprot.c: 19: void mn_send(uint8_t dest, uint8_t ttl, uint8_t *data, uint8_t ack) {
+                                     99 ; genLabel
+                                    100 ;	-----------------------------------------
+                                    101 ;	 function mn_send
+                                    102 ;	-----------------------------------------
+                                    103 ;	Register assignment might be sub-optimal.
+                                    104 ;	Stack space usage: 13 bytes.
+      000017                        105 _mn_send:
+      000017 52 0D            [ 2]  106 	sub	sp, #13
+                                    107 ;	src/mnprot.c: 21: uint8_t frame[PAYLOADSIZE] = {0};
+                                    108 ; skipping iCode since result will be rematerialized
+                                    109 ; genPointerSet
+      000019 0F 05            [ 1]  110 	clr	(0x05, sp)
+                                    111 ; genPlus
+      00001B 96               [ 1]  112 	ldw	x, sp
+      00001C 1C 00 06         [ 2]  113 	addw	x, #6
+      00001F 1F 01            [ 2]  114 	ldw	(0x01, sp), x
+                                    115 ; genPointerSet
+      000021 1E 01            [ 2]  116 	ldw	x, (0x01, sp)
+      000023 7F               [ 1]  117 	clr	(x)
+                                    118 ; genPlus
+      000024 96               [ 1]  119 	ldw	x, sp
+      000025 1C 00 07         [ 2]  120 	addw	x, #7
+      000028 1F 03            [ 2]  121 	ldw	(0x03, sp), x
+                                    122 ; genPointerSet
+      00002A 1E 03            [ 2]  123 	ldw	x, (0x03, sp)
+      00002C 7F               [ 1]  124 	clr	(x)
+                                    125 ; genPlus
+      00002D 90 96            [ 1]  126 	ldw	y, sp
+      00002F 72 A9 00 08      [ 2]  127 	addw	y, #8
+                                    128 ; genPointerSet
+      000033 90 7F            [ 1]  129 	clr	(y)
+                                    130 ; genPlus
+      000035 96               [ 1]  131 	ldw	x, sp
+      000036 1C 00 09         [ 2]  132 	addw	x, #9
+                                    133 ; genPointerSet
+      000039 7F               [ 1]  134 	clr	(x)
+                                    135 ; genPlus
+      00003A 96               [ 1]  136 	ldw	x, sp
+      00003B 1C 00 0A         [ 2]  137 	addw	x, #10
+                                    138 ; genPointerSet
+      00003E 7F               [ 1]  139 	clr	(x)
+                                    140 ; genPlus
+      00003F 96               [ 1]  141 	ldw	x, sp
+      000040 1C 00 0B         [ 2]  142 	addw	x, #11
+                                    143 ; genPointerSet
+      000043 7F               [ 1]  144 	clr	(x)
+                                    145 ; genPlus
+      000044 96               [ 1]  146 	ldw	x, sp
+      000045 1C 00 0C         [ 2]  147 	addw	x, #12
+                                    148 ; genPointerSet
+      000048 7F               [ 1]  149 	clr	(x)
+                                    150 ;	src/mnprot.c: 25: if( ttl > 127 ) {
+                                    151 ; genCmp
+                                    152 ; genCmpTop
+      000049 7B 11            [ 1]  153 	ld	a, (0x11, sp)
+      00004B A1 7F            [ 1]  154 	cp	a, #0x7f
+      00004D 22 03            [ 1]  155 	jrugt	00131$
+      00004F CCr00r56         [ 2]  156 	jp	00102$
+      000052                        157 00131$:
+                                    158 ; skipping generated iCode
+                                    159 ;	src/mnprot.c: 26: ttl = 127;
+                                    160 ; genAssign
+      000052 A6 7F            [ 1]  161 	ld	a, #0x7f
+      000054 6B 11            [ 1]  162 	ld	(0x11, sp), a
+                                    163 ; genLabel
+      000056                        164 00102$:
+                                    165 ;	src/mnprot.c: 29: if( ack ) {
+                                    166 ; genIfx
+      000056 0D 14            [ 1]  167 	tnz	(0x14, sp)
+      000058 26 03            [ 1]  168 	jrne	00132$
+      00005A CCr00r63         [ 2]  169 	jp	00104$
+      00005D                        170 00132$:
+                                    171 ;	src/mnprot.c: 30: ttl |= 0x80;
+                                    172 ; genAssign
+      00005D 7B 11            [ 1]  173 	ld	a, (0x11, sp)
+                                    174 ; genOr
+      00005F AA 80            [ 1]  175 	or	a, #0x80
+      000061 6B 11            [ 1]  176 	ld	(0x11, sp), a
+                                    177 ; genLabel
+      000063                        178 00104$:
+                                    179 ;	src/mnprot.c: 33: frame[0] = dest;
+                                    180 ; genPointerSet
+      000063 7B 10            [ 1]  181 	ld	a, (0x10, sp)
+      000065 6B 05            [ 1]  182 	ld	(0x05, sp), a
+                                    183 ;	src/mnprot.c: 34: frame[1] = MN_ADDR;
+                                    184 ; genPointerSet
+      000067 1E 01            [ 2]  185 	ldw	x, (0x01, sp)
+      000069 A6 03            [ 1]  186 	ld	a, #0x03
+      00006B F7               [ 1]  187 	ld	(x), a
+                                    188 ;	src/mnprot.c: 35: frame[2] = ttl;
+                                    189 ; genPointerSet
+      00006C 1E 03            [ 2]  190 	ldw	x, (0x03, sp)
+      00006E 7B 11            [ 1]  191 	ld	a, (0x11, sp)
+      000070 F7               [ 1]  192 	ld	(x), a
+                                    193 ;	src/mnprot.c: 36: frame[3] = frame_id++;
+                                    194 ; genAssign
+      000071 C6u00u18         [ 1]  195 	ld	a, _mn_send_frame_id_65536_73+0
+                                    196 ; genPlus
+      000074 72 5Cu00u18      [ 1]  197 	inc	_mn_send_frame_id_65536_73+0
+                                    198 ; genPointerSet
+      000078 90 F7            [ 1]  199 	ld	(y), a
+                                    200 ;	src/mnprot.c: 38: for(i = 4; i <PAYLOADSIZE; i++) {
+                                    201 ; genAssign
+      00007A 16 12            [ 2]  202 	ldw	y, (0x12, sp)
+                                    203 ; genAssign
+      00007C A6 04            [ 1]  204 	ld	a, #0x04
+      00007E 6B 0D            [ 1]  205 	ld	(0x0d, sp), a
+                                    206 ; genLabel
+      000080                        207 00106$:
+                                    208 ;	src/mnprot.c: 39: frame[i] = *data++;
+                                    209 ; genPlus
+      000080 5F               [ 1]  210 	clrw	x
+      000081 7B 0D            [ 1]  211 	ld	a, (0x0d, sp)
+      000083 97               [ 1]  212 	ld	xl, a
+      000084 89               [ 2]  213 	pushw	x
+      000085 96               [ 1]  214 	ldw	x, sp
+      000086 1C 00 07         [ 2]  215 	addw	x, #7
+      000089 72 FB 01         [ 2]  216 	addw	x, (1, sp)
+      00008C 5B 02            [ 2]  217 	addw	sp, #2
+                                    218 ; genPointerGet
+      00008E 90 F6            [ 1]  219 	ld	a, (y)
+                                    220 ; genPlus
+      000090 90 5C            [ 1]  221 	incw	y
+                                    222 ; genPointerSet
+      000092 F7               [ 1]  223 	ld	(x), a
+                                    224 ;	src/mnprot.c: 38: for(i = 4; i <PAYLOADSIZE; i++) {
+                                    225 ; genPlus
+      000093 0C 0D            [ 1]  226 	inc	(0x0d, sp)
+                                    227 ; genCmp
+                                    228 ; genCmpTop
+      000095 7B 0D            [ 1]  229 	ld	a, (0x0d, sp)
+      000097 A1 08            [ 1]  230 	cp	a, #0x08
+      000099 24 03            [ 1]  231 	jrnc	00133$
+      00009B CCr00r80         [ 2]  232 	jp	00106$
+      00009E                        233 00133$:
+                                    234 ; skipping generated iCode
+                                    235 ;	src/mnprot.c: 42: nrf_sendcmd( W_TX_PAYLOAD_NOACK );
+                                    236 ; genIPush
+      00009E 4B B0            [ 1]  237 	push	#0xb0
+                                    238 ; genCall
+      0000A0 CDr00r00         [ 4]  239 	call	_nrf_sendcmd
+      0000A3 84               [ 1]  240 	pop	a
+                                    241 ;	src/mnprot.c: 43: nrf_write_tx(frame, PAYLOADSIZE);
+                                    242 ; skipping iCode since result will be rematerialized
+                                    243 ; skipping iCode since result will be rematerialized
+                                    244 ; genIPush
+      0000A4 4B 08            [ 1]  245 	push	#0x08
+                                    246 ; genIPush
+      0000A6 96               [ 1]  247 	ldw	x, sp
+      0000A7 1C 00 06         [ 2]  248 	addw	x, #6
+      0000AA 89               [ 2]  249 	pushw	x
+                                    250 ; genCall
+      0000AB CDr00r00         [ 4]  251 	call	_nrf_write_tx
+      0000AE 5B 03            [ 2]  252 	addw	sp, #3
+                                    253 ; genLabel
+      0000B0                        254 00108$:
+                                    255 ;	src/mnprot.c: 44: }
+                                    256 ; genEndFunction
+      0000B0 5B 0D            [ 2]  257 	addw	sp, #13
+      0000B2 81               [ 4]  258 	ret
+                                    259 ;	src/mnprot.c: 47: void mn_decode_frame(void) {
+                                    260 ; genLabel
+                                    261 ;	-----------------------------------------
+                                    262 ;	 function mn_decode_frame
+                                    263 ;	-----------------------------------------
+                                    264 ;	Register assignment might be sub-optimal.
+                                    265 ;	Stack space usage: 0 bytes.
+      0000B3                        266 _mn_decode_frame:
+                                    267 ;	src/mnprot.c: 48: if( (sys_nrf.status & RX_DR) ) {
+                                    268 ; skipping iCode since result will be rematerialized
+                                    269 ; genPointerGet
+      0000B3 C6u00u00         [ 1]  270 	ld	a, _sys_nrf+0
+                                    271 ; genAnd
+      0000B6 A5 40            [ 1]  272 	bcp	a, #0x40
+      0000B8 26 03            [ 1]  273 	jrne	00139$
+      0000BA CCr01r0B         [ 2]  274 	jp	00112$
+      0000BD                        275 00139$:
+                                    276 ; skipping generated iCode
+                                    277 ;	src/mnprot.c: 49: if( sys_nrf.data_rx[0] == MN_ADDR ) {
+                                    278 ; skipping iCode since result will be rematerialized
+                                    279 ; skipping iCode since result will be rematerialized
+                                    280 ; genPointerGet
+      0000BD C6u00u02         [ 1]  281 	ld	a, _sys_nrf+2
+      0000C0 97               [ 1]  282 	ld	xl, a
+                                    283 ; genCmpEQorNE
+      0000C1 9F               [ 1]  284 	ld	a, xl
+      0000C2 A1 03            [ 1]  285 	cp	a, #0x03
+      0000C4 26 03            [ 1]  286 	jrne	00141$
+      0000C6 CCr00rCC         [ 2]  287 	jp	00142$
+      0000C9                        288 00141$:
+      0000C9 CCr00rD2         [ 2]  289 	jp	00108$
+      0000CC                        290 00142$:
+                                    291 ; skipping generated iCode
+                                    292 ;	src/mnprot.c: 51: mn_execute();
+                                    293 ; genCall
+      0000CC CDr01r0C         [ 4]  294 	call	_mn_execute
+                                    295 ; genGoto
+      0000CF CCr01r03         [ 2]  296 	jp	00109$
+                                    297 ; genLabel
+      0000D2                        298 00108$:
+                                    299 ;	src/mnprot.c: 52: } else 	if (sys_nrf.data_rx[0] == 255 && sys_nrf.data_rx[1] != MN_ADDR) {
+                                    300 ; skipping iCode since result will be rematerialized
+                                    301 ; genPointerGet
+      0000D2 C6u00u03         [ 1]  302 	ld	a, _sys_nrf+3
+                                    303 ; genCmpEQorNE
+      0000D5 A1 03            [ 1]  304 	cp	a, #0x03
+      0000D7 26 05            [ 1]  305 	jrne	00144$
+      0000D9 A6 01            [ 1]  306 	ld	a, #0x01
+      0000DB CCr00rDF         [ 2]  307 	jp	00145$
+      0000DE                        308 00144$:
+      0000DE 4F               [ 1]  309 	clr	a
+      0000DF                        310 00145$:
+                                    311 ; genCmpEQorNE
+      0000DF 88               [ 1]  312 	push	a
+      0000E0 9F               [ 1]  313 	ld	a, xl
+      0000E1 4C               [ 1]  314 	inc	a
+      0000E2 84               [ 1]  315 	pop	a
+      0000E3 26 03            [ 1]  316 	jrne	00147$
+      0000E5 CCr00rEB         [ 2]  317 	jp	00148$
+      0000E8                        318 00147$:
+      0000E8 CCr00rFA         [ 2]  319 	jp	00104$
+      0000EB                        320 00148$:
+                                    321 ; skipping generated iCode
+                                    322 ; genIfx
+      0000EB 4D               [ 1]  323 	tnz	a
+      0000EC 27 03            [ 1]  324 	jreq	00149$
+      0000EE CCr00rFA         [ 2]  325 	jp	00104$
+      0000F1                        326 00149$:
+                                    327 ;	src/mnprot.c: 54: mn_retransmit();
+                                    328 ; genCall
+      0000F1 CDr01r9F         [ 4]  329 	call	_mn_retransmit
+                                    330 ;	src/mnprot.c: 55: mn_execute();
+                                    331 ; genCall
+      0000F4 CDr01r0C         [ 4]  332 	call	_mn_execute
+                                    333 ; genGoto
+      0000F7 CCr01r03         [ 2]  334 	jp	00109$
+                                    335 ; genLabel
+      0000FA                        336 00104$:
+                                    337 ;	src/mnprot.c: 56: } else if ( sys_nrf.data_rx[1] != MN_ADDR ) {
+                                    338 ; genIfx
+      0000FA 4D               [ 1]  339 	tnz	a
+      0000FB 27 03            [ 1]  340 	jreq	00150$
+      0000FD CCr01r03         [ 2]  341 	jp	00109$
+      000100                        342 00150$:
+                                    343 ;	src/mnprot.c: 58: mn_retransmit();
+                                    344 ; genCall
+      000100 CDr01r9F         [ 4]  345 	call	_mn_retransmit
+                                    346 ; genLabel
+      000103                        347 00109$:
+                                    348 ;	src/mnprot.c: 62: sys_nrf.status &= ~RX_DR;
+                                    349 ; genPointerGet
+      000103 C6u00u00         [ 1]  350 	ld	a, _sys_nrf+0
+                                    351 ; genAnd
+      000106 A4 BF            [ 1]  352 	and	a, #0xbf
+                                    353 ; genPointerSet
+      000108 C7u00u00         [ 1]  354 	ld	_sys_nrf+0, a
+                                    355 ; genLabel
+      00010B                        356 00112$:
+                                    357 ;	src/mnprot.c: 64: }
+                                    358 ; genEndFunction
+      00010B 81               [ 4]  359 	ret
+                                    360 ;	src/mnprot.c: 67: void mn_execute(void) {
+                                    361 ; genLabel
+                                    362 ;	-----------------------------------------
+                                    363 ;	 function mn_execute
+                                    364 ;	-----------------------------------------
+                                    365 ;	Register assignment might be sub-optimal.
+                                    366 ;	Stack space usage: 7 bytes.
+      00010C                        367 _mn_execute:
+      00010C 52 07            [ 2]  368 	sub	sp, #7
+                                    369 ;	src/mnprot.c: 69: uint8_t e = 1;
+                                    370 ; genAssign
+      00010E A6 01            [ 1]  371 	ld	a, #0x01
+      000110 6B 01            [ 1]  372 	ld	(0x01, sp), a
+                                    373 ;	src/mnprot.c: 72: for( x = 0; x < CMP_BUFF_SIZE; x++) {
+                                    374 ; skipping iCode since result will be rematerialized
+                                    375 ; skipping iCode since result will be rematerialized
+                                    376 ; genPlus
+      000112 AEr00r03         [ 2]  377 	ldw	x, #(_sys_nrf + 0)+3
+      000115 1F 02            [ 2]  378 	ldw	(0x02, sp), x
+                                    379 ; genAssign
+      000117 0F 07            [ 1]  380 	clr	(0x07, sp)
+                                    381 ; genLabel
+      000119                        382 00109$:
+                                    383 ;	src/mnprot.c: 73: if( (mn_frame.cmpframe[0][x] == sys_nrf.data_rx[SRC_ADDR]) && (mn_frame.cmpframe[1][x] == sys_nrf.data_rx[FRAME_ID]) ) {
+                                    384 ; genPlus
+      000119 5F               [ 1]  385 	clrw	x
+      00011A 7B 07            [ 1]  386 	ld	a, (0x07, sp)
+      00011C 97               [ 1]  387 	ld	xl, a
+      00011D 1Cr00r00         [ 2]  388 	addw	x, #(_mn_frame + 0)
+                                    389 ; genPointerGet
+      000120 F6               [ 1]  390 	ld	a, (x)
+      000121 6B 06            [ 1]  391 	ld	(0x06, sp), a
+                                    392 ; genPointerGet
+      000123 1E 02            [ 2]  393 	ldw	x, (0x02, sp)
+      000125 F6               [ 1]  394 	ld	a, (x)
+                                    395 ; genPlus
+      000126 AEr00r05         [ 2]  396 	ldw	x, #(_sys_nrf + 0)+5
+      000129 1F 04            [ 2]  397 	ldw	(0x04, sp), x
+                                    398 ; genCmpEQorNE
+      00012B 11 06            [ 1]  399 	cp	a, (0x06, sp)
+      00012D 26 03            [ 1]  400 	jrne	00139$
+      00012F CCr01r35         [ 2]  401 	jp	00140$
+      000132                        402 00139$:
+      000132 CCr01r55         [ 2]  403 	jp	00110$
+      000135                        404 00140$:
+                                    405 ; skipping generated iCode
+                                    406 ; genPlus
+      000135 AEr00r04         [ 2]  407 	ldw	x, #(_mn_frame + 0)+4
+                                    408 ; genPlus
+      000138 9F               [ 1]  409 	ld	a, xl
+      000139 1B 07            [ 1]  410 	add	a, (0x07, sp)
+      00013B 97               [ 1]  411 	ld	xl, a
+      00013C 9E               [ 1]  412 	ld	a, xh
+      00013D A9 00            [ 1]  413 	adc	a, #0x00
+                                    414 ; genPointerGet
+      00013F 95               [ 1]  415 	ld	xh, a
+      000140 F6               [ 1]  416 	ld	a, (x)
+      000141 6B 06            [ 1]  417 	ld	(0x06, sp), a
+                                    418 ; genPointerGet
+      000143 1E 04            [ 2]  419 	ldw	x, (0x04, sp)
+      000145 F6               [ 1]  420 	ld	a, (x)
+                                    421 ; genCmpEQorNE
+      000146 11 06            [ 1]  422 	cp	a, (0x06, sp)
+      000148 26 03            [ 1]  423 	jrne	00142$
+      00014A CCr01r50         [ 2]  424 	jp	00143$
+      00014D                        425 00142$:
+      00014D CCr01r55         [ 2]  426 	jp	00110$
+      000150                        427 00143$:
+                                    428 ; skipping generated iCode
+                                    429 ;	src/mnprot.c: 74: e = 0;
+                                    430 ; genAssign
+      000150 0F 01            [ 1]  431 	clr	(0x01, sp)
+                                    432 ;	src/mnprot.c: 75: break;
+                                    433 ; genGoto
+      000152 CCr01r60         [ 2]  434 	jp	00104$
+                                    435 ; genLabel
+      000155                        436 00110$:
+                                    437 ;	src/mnprot.c: 72: for( x = 0; x < CMP_BUFF_SIZE; x++) {
+                                    438 ; genPlus
+      000155 0C 07            [ 1]  439 	inc	(0x07, sp)
+                                    440 ; genCmp
+                                    441 ; genCmpTop
+      000157 7B 07            [ 1]  442 	ld	a, (0x07, sp)
+      000159 A1 04            [ 1]  443 	cp	a, #0x04
+      00015B 24 03            [ 1]  444 	jrnc	00144$
+      00015D CCr01r19         [ 2]  445 	jp	00109$
+      000160                        446 00144$:
+                                    447 ; skipping generated iCode
+                                    448 ; genLabel
+      000160                        449 00104$:
+                                    450 ;	src/mnprot.c: 79: if( e ) {
+                                    451 ; genIfx
+      000160 0D 01            [ 1]  452 	tnz	(0x01, sp)
+      000162 26 03            [ 1]  453 	jrne	00145$
+      000164 CCr01r9C         [ 2]  454 	jp	00111$
+      000167                        455 00145$:
+                                    456 ;	src/mnprot.c: 81: mn_frame.cframe_idx = (++mn_frame.cframe_idx & (CMP_BUFF_SIZE-1) );
+                                    457 ; skipping iCode since result will be rematerialized
+                                    458 ; genPlus
+      000167 AEr00r08         [ 2]  459 	ldw	x, #(_mn_frame + 0)+8
+                                    460 ; genPointerGet
+      00016A F6               [ 1]  461 	ld	a, (x)
+                                    462 ; genPlus
+      00016B 4C               [ 1]  463 	inc	a
+                                    464 ; genPointerSet
+      00016C F7               [ 1]  465 	ld	(x), a
+                                    466 ; genAnd
+      00016D A4 03            [ 1]  467 	and	a, #0x03
+      00016F 6B 07            [ 1]  468 	ld	(0x07, sp), a
+                                    469 ; genPointerSet
+      000171 7B 07            [ 1]  470 	ld	a, (0x07, sp)
+      000173 F7               [ 1]  471 	ld	(x), a
+                                    472 ;	src/mnprot.c: 82: mn_frame.cmpframe[0][mn_frame.cframe_idx] = sys_nrf.data_rx[SRC_ADDR]; // source addr.
+                                    473 ; genPlus
+      000174 5F               [ 1]  474 	clrw	x
+      000175 7B 07            [ 1]  475 	ld	a, (0x07, sp)
+      000177 97               [ 1]  476 	ld	xl, a
+      000178 1Cr00r00         [ 2]  477 	addw	x, #(_mn_frame + 0)
+                                    478 ; genPointerGet
+      00017B 16 02            [ 2]  479 	ldw	y, (0x02, sp)
+      00017D 90 F6            [ 1]  480 	ld	a, (y)
+                                    481 ; genPointerSet
+      00017F F7               [ 1]  482 	ld	(x), a
+                                    483 ;	src/mnprot.c: 83: mn_frame.cmpframe[1][mn_frame.cframe_idx] = sys_nrf.data_rx[FRAME_ID]; // frame ID
+                                    484 ; genPlus
+      000180 AEr00r04         [ 2]  485 	ldw	x, #(_mn_frame + 0)+4
+                                    486 ; genPlus
+      000183 9F               [ 1]  487 	ld	a, xl
+      000184 1B 07            [ 1]  488 	add	a, (0x07, sp)
+      000186 97               [ 1]  489 	ld	xl, a
+      000187 9E               [ 1]  490 	ld	a, xh
+      000188 A9 00            [ 1]  491 	adc	a, #0x00
+      00018A 95               [ 1]  492 	ld	xh, a
+                                    493 ; genPointerGet
+      00018B 16 04            [ 2]  494 	ldw	y, (0x04, sp)
+      00018D 90 F6            [ 1]  495 	ld	a, (y)
+                                    496 ; genPointerSet
+      00018F F7               [ 1]  497 	ld	(x), a
+                                    498 ;	src/mnprot.c: 86: if ( mn_frame.execute ) {
+                                    499 ; skipping iCode since result will be rematerialized
+                                    500 ; genPointerGet
+      000190 CEu00u16         [ 2]  501 	ldw	x, _mn_frame+22
+                                    502 ; genIfx
+      000193 5D               [ 2]  503 	tnzw	x
+      000194 26 03            [ 1]  504 	jrne	00146$
+      000196 CCr01r9C         [ 2]  505 	jp	00111$
+      000199                        506 00146$:
+                                    507 ;	src/mnprot.c: 87: mn_frame.execute();
+                                    508 ; genCall
+      000199 5B 07            [ 2]  509 	addw	sp, #7
+      00019B FC               [ 2]  510 	jp	(x)
+                                    511 ; genLabel
+      00019C                        512 00111$:
+                                    513 ;	src/mnprot.c: 99: }
+                                    514 ; genEndFunction
+      00019C 5B 07            [ 2]  515 	addw	sp, #7
+      00019E 81               [ 4]  516 	ret
+                                    517 ;	src/mnprot.c: 102: void mn_retransmit(void) {
+                                    518 ; genLabel
+                                    519 ;	-----------------------------------------
+                                    520 ;	 function mn_retransmit
+                                    521 ;	-----------------------------------------
+                                    522 ;	Register assignment might be sub-optimal.
+                                    523 ;	Stack space usage: 17 bytes.
+      00019F                        524 _mn_retransmit:
+      00019F 52 11            [ 2]  525 	sub	sp, #17
+                                    526 ;	src/mnprot.c: 103: uint8_t ack = (sys_nrf.data_rx[ACK_TTL] & 0x80); // get ACK
+                                    527 ; skipping iCode since result will be rematerialized
+                                    528 ; genPlus
+      0001A1 AEr00r02         [ 2]  529 	ldw	x, #(_sys_nrf + 0)+2
+      0001A4 1F 01            [ 2]  530 	ldw	(0x01, sp), x
+                                    531 ; genAssign
+      0001A6 16 01            [ 2]  532 	ldw	y, (0x01, sp)
+      0001A8 17 03            [ 2]  533 	ldw	(0x03, sp), y
+                                    534 ; genPlus
+      0001AA AEr00r04         [ 2]  535 	ldw	x, #(_sys_nrf + 0)+4
+      0001AD 1F 0D            [ 2]  536 	ldw	(0x0d, sp), x
+                                    537 ; genPointerGet
+      0001AF 1E 0D            [ 2]  538 	ldw	x, (0x0d, sp)
+      0001B1 F6               [ 1]  539 	ld	a, (x)
+      0001B2 95               [ 1]  540 	ld	xh, a
+                                    541 ; genAnd
+      0001B3 9E               [ 1]  542 	ld	a, xh
+      0001B4 A4 80            [ 1]  543 	and	a, #0x80
+      0001B6 6B 0F            [ 1]  544 	ld	(0x0f, sp), a
+                                    545 ;	src/mnprot.c: 104: uint8_t x = (sys_nrf.data_rx[ACK_TTL] & 0x7F);	 // x = TTL
+                                    546 ; genAnd
+      0001B8 58               [ 2]  547 	sllw	x
+      0001B9 54               [ 2]  548 	srlw	x
+                                    549 ;	src/mnprot.c: 105: uint8_t send = 1;
+                                    550 ; genAssign
+      0001BA A6 01            [ 1]  551 	ld	a, #0x01
+      0001BC 6B 05            [ 1]  552 	ld	(0x05, sp), a
+                                    553 ;	src/mnprot.c: 108: if( --x ) {
+                                    554 ; genMinus
+      0001BE 9E               [ 1]  555 	ld	a, xh
+      0001BF 4A               [ 1]  556 	dec	a
+      0001C0 6B 11            [ 1]  557 	ld	(0x11, sp), a
+                                    558 ; genIfx
+      0001C2 0D 11            [ 1]  559 	tnz	(0x11, sp)
+      0001C4 26 03            [ 1]  560 	jrne	00144$
+      0001C6 CCr02r9D         [ 2]  561 	jp	00112$
+      0001C9                        562 00144$:
+                                    563 ;	src/mnprot.c: 109: sys_nrf.data_rx[2] = x | ack;
+                                    564 ; genOr
+      0001C9 7B 11            [ 1]  565 	ld	a, (0x11, sp)
+      0001CB 1A 0F            [ 1]  566 	or	a, (0x0f, sp)
+      0001CD 6B 11            [ 1]  567 	ld	(0x11, sp), a
+                                    568 ; genPointerSet
+      0001CF 1E 0D            [ 2]  569 	ldw	x, (0x0d, sp)
+      0001D1 7B 11            [ 1]  570 	ld	a, (0x11, sp)
+      0001D3 F7               [ 1]  571 	ld	(x), a
+                                    572 ;	src/mnprot.c: 112: for(x=0; x<RET_BUFF_SIZE; x++) {
+                                    573 ; genPlus
+      0001D4 AEr00r05         [ 2]  574 	ldw	x, #(_sys_nrf + 0)+5
+      0001D7 1F 06            [ 2]  575 	ldw	(0x06, sp), x
+                                    576 ; genPlus
+      0001D9 AEr00r03         [ 2]  577 	ldw	x, #(_sys_nrf + 0)+3
+      0001DC 1F 08            [ 2]  578 	ldw	(0x08, sp), x
+                                    579 ; skipping iCode since result will be rematerialized
+                                    580 ; genPlus
+      0001DE AEr00r09         [ 2]  581 	ldw	x, #(_mn_frame + 0)+9
+      0001E1 1F 0A            [ 2]  582 	ldw	(0x0a, sp), x
+                                    583 ; genAssign
+      0001E3 0F 11            [ 1]  584 	clr	(0x11, sp)
+                                    585 ; genLabel
+      0001E5                        586 00110$:
+                                    587 ;	src/mnprot.c: 113: if( (mn_frame.retframe[0][x] == sys_nrf.data_rx[DST_ADDR]) && (mn_frame.retframe[1][x] == sys_nrf.data_rx[SRC_ADDR]) && (mn_frame.retframe[2][x] == sys_nrf.data_rx[FRAME_ID]) ) {
+                                    588 ; genPlus
+      0001E5 5F               [ 1]  589 	clrw	x
+      0001E6 7B 11            [ 1]  590 	ld	a, (0x11, sp)
+      0001E8 97               [ 1]  591 	ld	xl, a
+      0001E9 72 FB 0A         [ 2]  592 	addw	x, (0x0a, sp)
+                                    593 ; genPointerGet
+      0001EC F6               [ 1]  594 	ld	a, (x)
+      0001ED 6B 10            [ 1]  595 	ld	(0x10, sp), a
+                                    596 ; genPointerGet
+      0001EF 1E 03            [ 2]  597 	ldw	x, (0x03, sp)
+      0001F1 F6               [ 1]  598 	ld	a, (x)
+                                    599 ; genPlus
+      0001F2 AEr00r0D         [ 2]  600 	ldw	x, #(_mn_frame + 0)+13
+      0001F5 1F 0C            [ 2]  601 	ldw	(0x0c, sp), x
+                                    602 ; genPlus
+      0001F7 AEr00r11         [ 2]  603 	ldw	x, #(_mn_frame + 0)+17
+      0001FA 1F 0E            [ 2]  604 	ldw	(0x0e, sp), x
+                                    605 ; genCmpEQorNE
+      0001FC 11 10            [ 1]  606 	cp	a, (0x10, sp)
+      0001FE 26 03            [ 1]  607 	jrne	00146$
+      000200 CCr02r06         [ 2]  608 	jp	00147$
+      000203                        609 00146$:
+      000203 CCr02r39         [ 2]  610 	jp	00111$
+      000206                        611 00147$:
+                                    612 ; skipping generated iCode
+                                    613 ; genPlus
+      000206 5F               [ 1]  614 	clrw	x
+      000207 7B 11            [ 1]  615 	ld	a, (0x11, sp)
+      000209 97               [ 1]  616 	ld	xl, a
+      00020A 72 FB 0C         [ 2]  617 	addw	x, (0x0c, sp)
+                                    618 ; genPointerGet
+      00020D F6               [ 1]  619 	ld	a, (x)
+      00020E 6B 10            [ 1]  620 	ld	(0x10, sp), a
+                                    621 ; genPointerGet
+      000210 1E 08            [ 2]  622 	ldw	x, (0x08, sp)
+      000212 F6               [ 1]  623 	ld	a, (x)
+                                    624 ; genCmpEQorNE
+      000213 11 10            [ 1]  625 	cp	a, (0x10, sp)
+      000215 26 03            [ 1]  626 	jrne	00149$
+      000217 CCr02r1D         [ 2]  627 	jp	00150$
+      00021A                        628 00149$:
+      00021A CCr02r39         [ 2]  629 	jp	00111$
+      00021D                        630 00150$:
+                                    631 ; skipping generated iCode
+                                    632 ; genPlus
+      00021D 5F               [ 1]  633 	clrw	x
+      00021E 7B 11            [ 1]  634 	ld	a, (0x11, sp)
+      000220 97               [ 1]  635 	ld	xl, a
+      000221 72 FB 0E         [ 2]  636 	addw	x, (0x0e, sp)
+                                    637 ; genPointerGet
+      000224 F6               [ 1]  638 	ld	a, (x)
+      000225 6B 10            [ 1]  639 	ld	(0x10, sp), a
+                                    640 ; genPointerGet
+      000227 1E 06            [ 2]  641 	ldw	x, (0x06, sp)
+      000229 F6               [ 1]  642 	ld	a, (x)
+                                    643 ; genCmpEQorNE
+      00022A 11 10            [ 1]  644 	cp	a, (0x10, sp)
+      00022C 26 03            [ 1]  645 	jrne	00152$
+      00022E CCr02r34         [ 2]  646 	jp	00153$
+      000231                        647 00152$:
+      000231 CCr02r39         [ 2]  648 	jp	00111$
+      000234                        649 00153$:
+                                    650 ; skipping generated iCode
+                                    651 ;	src/mnprot.c: 114: send = 0;
+                                    652 ; genAssign
+      000234 0F 05            [ 1]  653 	clr	(0x05, sp)
+                                    654 ;	src/mnprot.c: 115: break;
+                                    655 ; genGoto
+      000236 CCr02r44         [ 2]  656 	jp	00105$
+                                    657 ; genLabel
+      000239                        658 00111$:
+                                    659 ;	src/mnprot.c: 112: for(x=0; x<RET_BUFF_SIZE; x++) {
+                                    660 ; genPlus
+      000239 0C 11            [ 1]  661 	inc	(0x11, sp)
+                                    662 ; genCmp
+                                    663 ; genCmpTop
+      00023B 7B 11            [ 1]  664 	ld	a, (0x11, sp)
+      00023D A1 04            [ 1]  665 	cp	a, #0x04
+      00023F 24 03            [ 1]  666 	jrnc	00154$
+      000241 CCr01rE5         [ 2]  667 	jp	00110$
+      000244                        668 00154$:
+                                    669 ; skipping generated iCode
+                                    670 ; genLabel
+      000244                        671 00105$:
+                                    672 ;	src/mnprot.c: 119: if( send ) {
+                                    673 ; genIfx
+      000244 0D 05            [ 1]  674 	tnz	(0x05, sp)
+      000246 26 03            [ 1]  675 	jrne	00155$
+      000248 CCr02r9D         [ 2]  676 	jp	00112$
+      00024B                        677 00155$:
+                                    678 ;	src/mnprot.c: 120: nrf_tx_enable();
+                                    679 ; genCall
+      00024B CDr00r00         [ 4]  680 	call	_nrf_tx_enable
+                                    681 ;	src/mnprot.c: 121: mn_frame.rframe_idx = (++mn_frame.rframe_idx & (RET_BUFF_SIZE-1) );
+                                    682 ; genPlus
+      00024E AEr00r15         [ 2]  683 	ldw	x, #(_mn_frame + 0)+21
+                                    684 ; genPointerGet
+      000251 F6               [ 1]  685 	ld	a, (x)
+                                    686 ; genPlus
+      000252 4C               [ 1]  687 	inc	a
+                                    688 ; genPointerSet
+      000253 F7               [ 1]  689 	ld	(x), a
+                                    690 ; genAnd
+      000254 A4 03            [ 1]  691 	and	a, #0x03
+      000256 6B 11            [ 1]  692 	ld	(0x11, sp), a
+                                    693 ; genPointerSet
+      000258 7B 11            [ 1]  694 	ld	a, (0x11, sp)
+      00025A F7               [ 1]  695 	ld	(x), a
+                                    696 ;	src/mnprot.c: 122: mn_frame.retframe[0][mn_frame.rframe_idx] = sys_nrf.data_rx[DST_ADDR];
+                                    697 ; genPlus
+      00025B 5F               [ 1]  698 	clrw	x
+      00025C 7B 11            [ 1]  699 	ld	a, (0x11, sp)
+      00025E 97               [ 1]  700 	ld	xl, a
+      00025F 72 FB 0A         [ 2]  701 	addw	x, (0x0a, sp)
+                                    702 ; genPointerGet
+      000262 16 03            [ 2]  703 	ldw	y, (0x03, sp)
+      000264 90 F6            [ 1]  704 	ld	a, (y)
+                                    705 ; genPointerSet
+      000266 F7               [ 1]  706 	ld	(x), a
+                                    707 ;	src/mnprot.c: 123: mn_frame.retframe[1][mn_frame.rframe_idx] = sys_nrf.data_rx[SRC_ADDR];
+                                    708 ; genPlus
+      000267 5F               [ 1]  709 	clrw	x
+      000268 7B 11            [ 1]  710 	ld	a, (0x11, sp)
+      00026A 97               [ 1]  711 	ld	xl, a
+      00026B 72 FB 0C         [ 2]  712 	addw	x, (0x0c, sp)
+                                    713 ; genPointerGet
+      00026E 16 08            [ 2]  714 	ldw	y, (0x08, sp)
+      000270 90 F6            [ 1]  715 	ld	a, (y)
+                                    716 ; genPointerSet
+      000272 F7               [ 1]  717 	ld	(x), a
+                                    718 ;	src/mnprot.c: 124: mn_frame.retframe[2][mn_frame.rframe_idx] = sys_nrf.data_rx[FRAME_ID];
+                                    719 ; genPlus
+      000273 5F               [ 1]  720 	clrw	x
+      000274 7B 11            [ 1]  721 	ld	a, (0x11, sp)
+      000276 97               [ 1]  722 	ld	xl, a
+      000277 72 FB 0E         [ 2]  723 	addw	x, (0x0e, sp)
+                                    724 ; genPointerGet
+      00027A 16 06            [ 2]  725 	ldw	y, (0x06, sp)
+      00027C 90 F6            [ 1]  726 	ld	a, (y)
+                                    727 ; genPointerSet
+      00027E F7               [ 1]  728 	ld	(x), a
+                                    729 ;	src/mnprot.c: 125: nrf_sendcmd( W_TX_PAYLOAD_NOACK );
+                                    730 ; genIPush
+      00027F 4B B0            [ 1]  731 	push	#0xb0
+                                    732 ; genCall
+      000281 CDr00r00         [ 4]  733 	call	_nrf_sendcmd
+      000284 84               [ 1]  734 	pop	a
+                                    735 ;	src/mnprot.c: 126: delay(55*MN_ADDR);
+                                    736 ; genIPush
+      000285 4B A5            [ 1]  737 	push	#0xa5
+      000287 4B 00            [ 1]  738 	push	#0x00
+                                    739 ; genCall
+      000289 CDr00r00         [ 4]  740 	call	_delay
+      00028C 5B 02            [ 2]  741 	addw	sp, #2
+                                    742 ;	src/mnprot.c: 127: nrf_write_tx(sys_nrf.data_rx, PAYLOADSIZE);
+                                    743 ; genCast
+                                    744 ; genAssign
+      00028E 1E 01            [ 2]  745 	ldw	x, (0x01, sp)
+                                    746 ; genIPush
+      000290 4B 08            [ 1]  747 	push	#0x08
+                                    748 ; genIPush
+      000292 89               [ 2]  749 	pushw	x
+                                    750 ; genCall
+      000293 CDr00r00         [ 4]  751 	call	_nrf_write_tx
+      000296 5B 03            [ 2]  752 	addw	sp, #3
+                                    753 ;	src/mnprot.c: 128: nrf_rx_enable();
+                                    754 ; genCall
+      000298 5B 11            [ 2]  755 	addw	sp, #17
+      00029A CCr00r00         [ 2]  756 	jp	_nrf_rx_enable
+                                    757 ; genLabel
+      00029D                        758 00112$:
+                                    759 ;	src/mnprot.c: 131: }
+                                    760 ; genEndFunction
+      00029D 5B 11            [ 2]  761 	addw	sp, #17
+      00029F 81               [ 4]  762 	ret
+                                    763 	.area CODE
+                                    764 	.area CONST
+                                    765 	.area INITIALIZER
+                                    766 	.area CABS (ABS)

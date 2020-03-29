@@ -1,0 +1,1190 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 4.0.0 #11528 (Linux)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module nrf24l01
+                                      6 	.optsdcc -mstm8
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _output_set
+                                     12 	.globl _spi_transmit
+                                     13 	.globl _delay
+                                     14 	.globl _nrf_init_hw
+                                     15 	.globl _nrf_power
+                                     16 	.globl _nrf_init_sw
+                                     17 	.globl _nrf_reset
+                                     18 	.globl _nrf_powerdown
+                                     19 	.globl _nrf_rx_enable
+                                     20 	.globl _nrf_tx_enable
+                                     21 	.globl _nrf_read_rx
+                                     22 	.globl _nrf_write_tx
+                                     23 	.globl _nrf_register_cb
+                                     24 	.globl _nrf_event
+                                     25 	.globl _nrf_clear_rxbuff
+                                     26 	.globl _nrf_csn_enable
+                                     27 	.globl _nrf_csn_disable
+                                     28 	.globl _nrf_ce_low
+                                     29 	.globl _nrf_ce_high
+                                     30 	.globl _nrf_sendcmd
+                                     31 	.globl _nrf_readreg
+                                     32 	.globl _nrf_writereg
+                                     33 	.globl _nrf_writereg_many
+                                     34 ;--------------------------------------------------------
+                                     35 ; ram data
+                                     36 ;--------------------------------------------------------
+                                     37 	.area DATA
+                                     38 ;--------------------------------------------------------
+                                     39 ; ram data
+                                     40 ;--------------------------------------------------------
+                                     41 	.area INITIALIZED
+                                     42 ;--------------------------------------------------------
+                                     43 ; absolute external ram data
+                                     44 ;--------------------------------------------------------
+                                     45 	.area DABS (ABS)
+                                     46 
+                                     47 ; default segment ordering for linker
+                                     48 	.area HOME
+                                     49 	.area GSINIT
+                                     50 	.area GSFINAL
+                                     51 	.area CONST
+                                     52 	.area INITIALIZER
+                                     53 	.area CODE
+                                     54 
+                                     55 ;--------------------------------------------------------
+                                     56 ; global & static initialisations
+                                     57 ;--------------------------------------------------------
+                                     58 	.area HOME
+                                     59 	.area GSINIT
+                                     60 	.area GSFINAL
+                                     61 	.area GSINIT
+                                     62 ;--------------------------------------------------------
+                                     63 ; Home
+                                     64 ;--------------------------------------------------------
+                                     65 	.area HOME
+                                     66 	.area HOME
+                                     67 ;--------------------------------------------------------
+                                     68 ; code
+                                     69 ;--------------------------------------------------------
+                                     70 	.area CODE
+                                     71 ;	src/nrf24l01.c: 8: void nrf_init_hw(void) {
+                                     72 ; genLabel
+                                     73 ;	-----------------------------------------
+                                     74 ;	 function nrf_init_hw
+                                     75 ;	-----------------------------------------
+                                     76 ;	Register assignment is optimal.
+                                     77 ;	Stack space usage: 0 bytes.
+      0087C2                         78 _nrf_init_hw:
+                                     79 ;	src/nrf24l01.c: 10: GPIOA->DDR |= SPI_CE | SPI_CSN;
+                                     80 ; genPointerGet
+      0087C2 C6 50 02         [ 1]   81 	ld	a, 0x5002
+                                     82 ; genOr
+      0087C5 AA 0C            [ 1]   83 	or	a, #0x0c
+                                     84 ; genPointerSet
+      0087C7 C7 50 02         [ 1]   85 	ld	0x5002, a
+                                     86 ;	src/nrf24l01.c: 11: GPIOA->CR1 |= SPI_CE | SPI_CSN;
+                                     87 ; genPointerGet
+      0087CA C6 50 03         [ 1]   88 	ld	a, 0x5003
+                                     89 ; genOr
+      0087CD AA 0C            [ 1]   90 	or	a, #0x0c
+                                     91 ; genPointerSet
+      0087CF C7 50 03         [ 1]   92 	ld	0x5003, a
+                                     93 ;	src/nrf24l01.c: 12: GPIOA->CR2 |= SPI_CE | SPI_CSN;
+                                     94 ; genPointerGet
+      0087D2 C6 50 04         [ 1]   95 	ld	a, 0x5004
+                                     96 ; genOr
+      0087D5 AA 0C            [ 1]   97 	or	a, #0x0c
+                                     98 ; genPointerSet
+      0087D7 C7 50 04         [ 1]   99 	ld	0x5004, a
+                                    100 ;	src/nrf24l01.c: 13: GPIOA->ODR |= SPI_CSN;
+                                    101 ; genPointerGet
+      0087DA C6 50 00         [ 1]  102 	ld	a, 0x5000
+                                    103 ; genOr
+      0087DD AA 08            [ 1]  104 	or	a, #0x08
+                                    105 ; genPointerSet
+      0087DF C7 50 00         [ 1]  106 	ld	0x5000, a
+                                    107 ;	src/nrf24l01.c: 15: GPIOC->CR2 |= NRF_IRQ;
+                                    108 ; genPointerGet
+      0087E2 C6 50 0E         [ 1]  109 	ld	a, 0x500e
+                                    110 ; genOr
+      0087E5 AA 08            [ 1]  111 	or	a, #0x08
+                                    112 ; genPointerSet
+      0087E7 C7 50 0E         [ 1]  113 	ld	0x500e, a
+                                    114 ;	src/nrf24l01.c: 18: EXTI->CR1 |= 0x20; // PORTC faling edge
+                                    115 ; genPointerGet
+      0087EA C6 50 A0         [ 1]  116 	ld	a, 0x50a0
+                                    117 ; genOr
+      0087ED AA 20            [ 1]  118 	or	a, #0x20
+                                    119 ; genPointerSet
+      0087EF C7 50 A0         [ 1]  120 	ld	0x50a0, a
+                                    121 ; genLabel
+      0087F2                        122 00101$:
+                                    123 ;	src/nrf24l01.c: 19: }
+                                    124 ; genEndFunction
+      0087F2 81               [ 4]  125 	ret
+                                    126 ;	src/nrf24l01.c: 22: void nrf_power(uint8_t power) {
+                                    127 ; genLabel
+                                    128 ;	-----------------------------------------
+                                    129 ;	 function nrf_power
+                                    130 ;	-----------------------------------------
+                                    131 ;	Register assignment is optimal.
+                                    132 ;	Stack space usage: 0 bytes.
+      0087F3                        133 _nrf_power:
+                                    134 ;	src/nrf24l01.c: 23: if (power) {
+                                    135 ; genIfx
+      0087F3 0D 03            [ 1]  136 	tnz	(0x03, sp)
+      0087F5 26 03            [ 1]  137 	jrne	00111$
+      0087F7 CC 88 0F         [ 2]  138 	jp	00102$
+      0087FA                        139 00111$:
+                                    140 ;	src/nrf24l01.c: 24: output_set(R_NRF, 0);
+                                    141 ; genIPush
+      0087FA 4B 00            [ 1]  142 	push	#0x00
+                                    143 ; genIPush
+      0087FC 4B 00            [ 1]  144 	push	#0x00
+                                    145 ; genCall
+      0087FE CD 84 F0         [ 4]  146 	call	_output_set
+      008801 5B 02            [ 2]  147 	addw	sp, #2
+                                    148 ;	src/nrf24l01.c: 25: delay(65000);
+                                    149 ; genIPush
+      008803 4B E8            [ 1]  150 	push	#0xe8
+      008805 4B FD            [ 1]  151 	push	#0xfd
+                                    152 ; genCall
+      008807 CD 83 9A         [ 4]  153 	call	_delay
+      00880A 5B 02            [ 2]  154 	addw	sp, #2
+                                    155 ; genGoto
+      00880C CC 88 21         [ 2]  156 	jp	00104$
+                                    157 ; genLabel
+      00880F                        158 00102$:
+                                    159 ;	src/nrf24l01.c: 27: output_set(R_NRF, 1);
+                                    160 ; genIPush
+      00880F 4B 01            [ 1]  161 	push	#0x01
+                                    162 ; genIPush
+      008811 4B 00            [ 1]  163 	push	#0x00
+                                    164 ; genCall
+      008813 CD 84 F0         [ 4]  165 	call	_output_set
+      008816 5B 02            [ 2]  166 	addw	sp, #2
+                                    167 ;	src/nrf24l01.c: 28: delay(65000);
+                                    168 ; genIPush
+      008818 4B E8            [ 1]  169 	push	#0xe8
+      00881A 4B FD            [ 1]  170 	push	#0xfd
+                                    171 ; genCall
+      00881C CD 83 9A         [ 4]  172 	call	_delay
+      00881F 5B 02            [ 2]  173 	addw	sp, #2
+                                    174 ; genLabel
+      008821                        175 00104$:
+                                    176 ;	src/nrf24l01.c: 30: }
+                                    177 ; genEndFunction
+      008821 81               [ 4]  178 	ret
+                                    179 ;	src/nrf24l01.c: 33: void nrf_init_sw(void) {
+                                    180 ; genLabel
+                                    181 ;	-----------------------------------------
+                                    182 ;	 function nrf_init_sw
+                                    183 ;	-----------------------------------------
+                                    184 ;	Register assignment might be sub-optimal.
+                                    185 ;	Stack space usage: 5 bytes.
+      008822                        186 _nrf_init_sw:
+      008822 52 05            [ 2]  187 	sub	sp, #5
+                                    188 ;	src/nrf24l01.c: 34: uint8_t addr[5] = {0xA5, 0xE7, 0xE7, 0xE7, 0xA7};
+                                    189 ; skipping iCode since result will be rematerialized
+                                    190 ; genPointerSet
+      008824 A6 A5            [ 1]  191 	ld	a, #0xa5
+      008826 6B 01            [ 1]  192 	ld	(0x01, sp), a
+                                    193 ; genPlus
+      008828 96               [ 1]  194 	ldw	x, sp
+      008829 1C 00 02         [ 2]  195 	addw	x, #2
+                                    196 ; genPointerSet
+      00882C A6 E7            [ 1]  197 	ld	a, #0xe7
+      00882E F7               [ 1]  198 	ld	(x), a
+                                    199 ; genPlus
+      00882F 96               [ 1]  200 	ldw	x, sp
+      008830 1C 00 03         [ 2]  201 	addw	x, #3
+                                    202 ; genPointerSet
+      008833 A6 E7            [ 1]  203 	ld	a, #0xe7
+      008835 F7               [ 1]  204 	ld	(x), a
+                                    205 ; genPlus
+      008836 96               [ 1]  206 	ldw	x, sp
+      008837 1C 00 04         [ 2]  207 	addw	x, #4
+                                    208 ; genPointerSet
+      00883A A6 E7            [ 1]  209 	ld	a, #0xe7
+      00883C F7               [ 1]  210 	ld	(x), a
+                                    211 ; genPlus
+      00883D 96               [ 1]  212 	ldw	x, sp
+      00883E 1C 00 05         [ 2]  213 	addw	x, #5
+                                    214 ; genPointerSet
+      008841 A6 A7            [ 1]  215 	ld	a, #0xa7
+      008843 F7               [ 1]  216 	ld	(x), a
+                                    217 ;	src/nrf24l01.c: 36: nrf_writereg( SETUP_AW, AW_5 );
+                                    218 ; genIPush
+      008844 4B 03            [ 1]  219 	push	#0x03
+                                    220 ; genIPush
+      008846 4B 03            [ 1]  221 	push	#0x03
+                                    222 ; genCall
+      008848 CD 8A D0         [ 4]  223 	call	_nrf_writereg
+      00884B 5B 02            [ 2]  224 	addw	sp, #2
+                                    225 ;	src/nrf24l01.c: 37: nrf_writereg_many( 0, TX_ADDR, addr, 5);
+                                    226 ; skipping iCode since result will be rematerialized
+                                    227 ; skipping iCode since result will be rematerialized
+                                    228 ; genIPush
+      00884D 4B 05            [ 1]  229 	push	#0x05
+                                    230 ; genIPush
+      00884F 96               [ 1]  231 	ldw	x, sp
+      008850 5C               [ 1]  232 	incw	x
+      008851 5C               [ 1]  233 	incw	x
+      008852 89               [ 2]  234 	pushw	x
+                                    235 ; genIPush
+      008853 4B 10            [ 1]  236 	push	#0x10
+                                    237 ; genIPush
+      008855 4B 00            [ 1]  238 	push	#0x00
+                                    239 ; genCall
+      008857 CD 8A E9         [ 4]  240 	call	_nrf_writereg_many
+      00885A 5B 05            [ 2]  241 	addw	sp, #5
+                                    242 ;	src/nrf24l01.c: 38: nrf_writereg( EN_RXADDR, ERX_P0 | ERX_P1 );
+                                    243 ; genIPush
+      00885C 4B 03            [ 1]  244 	push	#0x03
+                                    245 ; genIPush
+      00885E 4B 02            [ 1]  246 	push	#0x02
+                                    247 ; genCall
+      008860 CD 8A D0         [ 4]  248 	call	_nrf_writereg
+      008863 5B 02            [ 2]  249 	addw	sp, #2
+                                    250 ;	src/nrf24l01.c: 39: nrf_writereg_many( 0, RX_ADDR_P0, addr, 5);
+                                    251 ; skipping iCode since result will be rematerialized
+                                    252 ; skipping iCode since result will be rematerialized
+                                    253 ; genIPush
+      008865 4B 05            [ 1]  254 	push	#0x05
+                                    255 ; genIPush
+      008867 96               [ 1]  256 	ldw	x, sp
+      008868 5C               [ 1]  257 	incw	x
+      008869 5C               [ 1]  258 	incw	x
+      00886A 89               [ 2]  259 	pushw	x
+                                    260 ; genIPush
+      00886B 4B 0A            [ 1]  261 	push	#0x0a
+                                    262 ; genIPush
+      00886D 4B 00            [ 1]  263 	push	#0x00
+                                    264 ; genCall
+      00886F CD 8A E9         [ 4]  265 	call	_nrf_writereg_many
+      008872 5B 05            [ 2]  266 	addw	sp, #5
+                                    267 ;	src/nrf24l01.c: 40: nrf_writereg( RX_PW_P0, PAYLOADSIZE);
+                                    268 ; genIPush
+      008874 4B 08            [ 1]  269 	push	#0x08
+                                    270 ; genIPush
+      008876 4B 11            [ 1]  271 	push	#0x11
+                                    272 ; genCall
+      008878 CD 8A D0         [ 4]  273 	call	_nrf_writereg
+      00887B 5B 02            [ 2]  274 	addw	sp, #2
+                                    275 ;	src/nrf24l01.c: 41: nrf_writereg( RX_PW_P1, PAYLOADSIZE);
+                                    276 ; genIPush
+      00887D 4B 08            [ 1]  277 	push	#0x08
+                                    278 ; genIPush
+      00887F 4B 12            [ 1]  279 	push	#0x12
+                                    280 ; genCall
+      008881 CD 8A D0         [ 4]  281 	call	_nrf_writereg
+      008884 5B 02            [ 2]  282 	addw	sp, #2
+                                    283 ;	src/nrf24l01.c: 42: nrf_writereg( EN_AA, 0x00);
+                                    284 ; genIPush
+      008886 4B 00            [ 1]  285 	push	#0x00
+                                    286 ; genIPush
+      008888 4B 01            [ 1]  287 	push	#0x01
+                                    288 ; genCall
+      00888A CD 8A D0         [ 4]  289 	call	_nrf_writereg
+      00888D 5B 02            [ 2]  290 	addw	sp, #2
+                                    291 ;	src/nrf24l01.c: 43: nrf_writereg( RF_CH, 11);
+                                    292 ; genIPush
+      00888F 4B 0B            [ 1]  293 	push	#0x0b
+                                    294 ; genIPush
+      008891 4B 05            [ 1]  295 	push	#0x05
+                                    296 ; genCall
+      008893 CD 8A D0         [ 4]  297 	call	_nrf_writereg
+      008896 5B 02            [ 2]  298 	addw	sp, #2
+                                    299 ;	src/nrf24l01.c: 44: nrf_writereg( RF_SETUP, TRANS_SPEED_1MB );
+                                    300 ; genIPush
+      008898 4B 00            [ 1]  301 	push	#0x00
+                                    302 ; genIPush
+      00889A 4B 06            [ 1]  303 	push	#0x06
+                                    304 ; genCall
+      00889C CD 8A D0         [ 4]  305 	call	_nrf_writereg
+      00889F 5B 02            [ 2]  306 	addw	sp, #2
+                                    307 ;	src/nrf24l01.c: 45: nrf_writereg( SETUP_RETR, 0x40);
+                                    308 ; genIPush
+      0088A1 4B 40            [ 1]  309 	push	#0x40
+                                    310 ; genIPush
+      0088A3 4B 04            [ 1]  311 	push	#0x04
+                                    312 ; genCall
+      0088A5 CD 8A D0         [ 4]  313 	call	_nrf_writereg
+      0088A8 5B 02            [ 2]  314 	addw	sp, #2
+                                    315 ;	src/nrf24l01.c: 46: nrf_writereg( FEATURE, EN_DYN_ACK);
+                                    316 ; genIPush
+      0088AA 4B 00            [ 1]  317 	push	#0x00
+                                    318 ; genIPush
+      0088AC 4B 1D            [ 1]  319 	push	#0x1d
+                                    320 ; genCall
+      0088AE CD 8A D0         [ 4]  321 	call	_nrf_writereg
+      0088B1 5B 02            [ 2]  322 	addw	sp, #2
+                                    323 ;	src/nrf24l01.c: 47: nrf_writereg( CONFIG, EN_CRC | CRC0 | MASK_MAX_RT | MASK_TX_DS);
+                                    324 ; genIPush
+      0088B3 4B 3C            [ 1]  325 	push	#0x3c
+                                    326 ; genIPush
+      0088B5 4B 00            [ 1]  327 	push	#0x00
+                                    328 ; genCall
+      0088B7 CD 8A D0         [ 4]  329 	call	_nrf_writereg
+      0088BA 5B 02            [ 2]  330 	addw	sp, #2
+                                    331 ; genLabel
+      0088BC                        332 00101$:
+                                    333 ;	src/nrf24l01.c: 48: }
+                                    334 ; genEndFunction
+      0088BC 5B 05            [ 2]  335 	addw	sp, #5
+      0088BE 81               [ 4]  336 	ret
+                                    337 ;	src/nrf24l01.c: 51: void nrf_reset(void) {
+                                    338 ; genLabel
+                                    339 ;	-----------------------------------------
+                                    340 ;	 function nrf_reset
+                                    341 ;	-----------------------------------------
+                                    342 ;	Register assignment is optimal.
+                                    343 ;	Stack space usage: 0 bytes.
+      0088BF                        344 _nrf_reset:
+                                    345 ;	src/nrf24l01.c: 52: nrf_power(0);
+                                    346 ; genIPush
+      0088BF 4B 00            [ 1]  347 	push	#0x00
+                                    348 ; genCall
+      0088C1 CD 87 F3         [ 4]  349 	call	_nrf_power
+      0088C4 84               [ 1]  350 	pop	a
+                                    351 ;	src/nrf24l01.c: 53: nrf_power(1);
+                                    352 ; genIPush
+      0088C5 4B 01            [ 1]  353 	push	#0x01
+                                    354 ; genCall
+      0088C7 CD 87 F3         [ 4]  355 	call	_nrf_power
+      0088CA 84               [ 1]  356 	pop	a
+                                    357 ;	src/nrf24l01.c: 55: nrf_writereg( CONFIG, 0x08 );
+                                    358 ; genIPush
+      0088CB 4B 08            [ 1]  359 	push	#0x08
+                                    360 ; genIPush
+      0088CD 4B 00            [ 1]  361 	push	#0x00
+                                    362 ; genCall
+      0088CF CD 8A D0         [ 4]  363 	call	_nrf_writereg
+      0088D2 5B 02            [ 2]  364 	addw	sp, #2
+                                    365 ;	src/nrf24l01.c: 56: nrf_writereg( RX_PW_P0, 0x00);
+                                    366 ; genIPush
+      0088D4 4B 00            [ 1]  367 	push	#0x00
+                                    368 ; genIPush
+      0088D6 4B 11            [ 1]  369 	push	#0x11
+                                    370 ; genCall
+      0088D8 CD 8A D0         [ 4]  371 	call	_nrf_writereg
+      0088DB 5B 02            [ 2]  372 	addw	sp, #2
+                                    373 ;	src/nrf24l01.c: 57: nrf_writereg( EN_AA, 0x00 );
+                                    374 ; genIPush
+      0088DD 4B 00            [ 1]  375 	push	#0x00
+                                    376 ; genIPush
+      0088DF 4B 01            [ 1]  377 	push	#0x01
+                                    378 ; genCall
+      0088E1 CD 8A D0         [ 4]  379 	call	_nrf_writereg
+      0088E4 5B 02            [ 2]  380 	addw	sp, #2
+                                    381 ;	src/nrf24l01.c: 58: nrf_writereg( EN_RXADDR, 0x00 );
+                                    382 ; genIPush
+      0088E6 4B 00            [ 1]  383 	push	#0x00
+                                    384 ; genIPush
+      0088E8 4B 02            [ 1]  385 	push	#0x02
+                                    386 ; genCall
+      0088EA CD 8A D0         [ 4]  387 	call	_nrf_writereg
+      0088ED 5B 02            [ 2]  388 	addw	sp, #2
+                                    389 ;	src/nrf24l01.c: 59: nrf_writereg( RF_CH, 0x00 );
+                                    390 ; genIPush
+      0088EF 4B 00            [ 1]  391 	push	#0x00
+                                    392 ; genIPush
+      0088F1 4B 05            [ 1]  393 	push	#0x05
+                                    394 ; genCall
+      0088F3 CD 8A D0         [ 4]  395 	call	_nrf_writereg
+      0088F6 5B 02            [ 2]  396 	addw	sp, #2
+                                    397 ;	src/nrf24l01.c: 60: nrf_writereg( RF_SETUP, 0x00 );
+                                    398 ; genIPush
+      0088F8 4B 00            [ 1]  399 	push	#0x00
+                                    400 ; genIPush
+      0088FA 4B 06            [ 1]  401 	push	#0x06
+                                    402 ; genCall
+      0088FC CD 8A D0         [ 4]  403 	call	_nrf_writereg
+      0088FF 5B 02            [ 2]  404 	addw	sp, #2
+                                    405 ;	src/nrf24l01.c: 61: nrf_writereg( STATUS, 0xe0 );
+                                    406 ; genIPush
+      008901 4B E0            [ 1]  407 	push	#0xe0
+                                    408 ; genIPush
+      008903 4B 07            [ 1]  409 	push	#0x07
+                                    410 ; genCall
+      008905 CD 8A D0         [ 4]  411 	call	_nrf_writereg
+      008908 5B 02            [ 2]  412 	addw	sp, #2
+                                    413 ;	src/nrf24l01.c: 62: nrf_sendcmd( FLUSH_TX );
+                                    414 ; genIPush
+      00890A 4B E1            [ 1]  415 	push	#0xe1
+                                    416 ; genCall
+      00890C CD 8A A6         [ 4]  417 	call	_nrf_sendcmd
+      00890F 84               [ 1]  418 	pop	a
+                                    419 ;	src/nrf24l01.c: 63: nrf_sendcmd( FLUSH_RX );
+                                    420 ; genIPush
+      008910 4B E2            [ 1]  421 	push	#0xe2
+                                    422 ; genCall
+      008912 CD 8A A6         [ 4]  423 	call	_nrf_sendcmd
+      008915 84               [ 1]  424 	pop	a
+                                    425 ; genLabel
+      008916                        426 00101$:
+                                    427 ;	src/nrf24l01.c: 64: }
+                                    428 ; genEndFunction
+      008916 81               [ 4]  429 	ret
+                                    430 ;	src/nrf24l01.c: 67: void nrf_powerdown(void) {
+                                    431 ; genLabel
+                                    432 ;	-----------------------------------------
+                                    433 ;	 function nrf_powerdown
+                                    434 ;	-----------------------------------------
+                                    435 ;	Register assignment is optimal.
+                                    436 ;	Stack space usage: 0 bytes.
+      008917                        437 _nrf_powerdown:
+                                    438 ;	src/nrf24l01.c: 69: nrf_ce_low();
+                                    439 ; genCall
+      008917 CD 8A 94         [ 4]  440 	call	_nrf_ce_low
+                                    441 ;	src/nrf24l01.c: 71: config = nrf_readreg( CONFIG );
+                                    442 ; genIPush
+      00891A 4B 00            [ 1]  443 	push	#0x00
+                                    444 ; genCall
+      00891C CD 8A B7         [ 4]  445 	call	_nrf_readreg
+      00891F 5B 01            [ 2]  446 	addw	sp, #1
+                                    447 ; genAssign
+                                    448 ;	src/nrf24l01.c: 72: config &= ~(PWR_UP | PRIM_RX);
+                                    449 ; genAnd
+      008921 A4 FC            [ 1]  450 	and	a, #0xfc
+                                    451 ;	src/nrf24l01.c: 73: nrf_writereg( CONFIG, config );
+                                    452 ; genIPush
+      008923 88               [ 1]  453 	push	a
+                                    454 ; genIPush
+      008924 4B 00            [ 1]  455 	push	#0x00
+                                    456 ; genCall
+      008926 CD 8A D0         [ 4]  457 	call	_nrf_writereg
+      008929 5B 02            [ 2]  458 	addw	sp, #2
+                                    459 ; genLabel
+      00892B                        460 00101$:
+                                    461 ;	src/nrf24l01.c: 74: }
+                                    462 ; genEndFunction
+      00892B 81               [ 4]  463 	ret
+                                    464 ;	src/nrf24l01.c: 77: void nrf_rx_enable(void) {
+                                    465 ; genLabel
+                                    466 ;	-----------------------------------------
+                                    467 ;	 function nrf_rx_enable
+                                    468 ;	-----------------------------------------
+                                    469 ;	Register assignment is optimal.
+                                    470 ;	Stack space usage: 0 bytes.
+      00892C                        471 _nrf_rx_enable:
+                                    472 ;	src/nrf24l01.c: 79: nrf_ce_low();
+                                    473 ; genCall
+      00892C CD 8A 94         [ 4]  474 	call	_nrf_ce_low
+                                    475 ;	src/nrf24l01.c: 81: config = nrf_readreg( CONFIG );
+                                    476 ; genIPush
+      00892F 4B 00            [ 1]  477 	push	#0x00
+                                    478 ; genCall
+      008931 CD 8A B7         [ 4]  479 	call	_nrf_readreg
+      008934 5B 01            [ 2]  480 	addw	sp, #1
+                                    481 ; genAssign
+                                    482 ;	src/nrf24l01.c: 82: nrf_writereg( CONFIG, config | PRIM_RX | PWR_UP );
+                                    483 ; genOr
+      008936 88               [ 1]  484 	push	a
+      008937 AA 03            [ 1]  485 	or	a, #0x03
+      008939 97               [ 1]  486 	ld	xl, a
+      00893A 84               [ 1]  487 	pop	a
+                                    488 ; genIPush
+      00893B 88               [ 1]  489 	push	a
+      00893C 89               [ 2]  490 	pushw	x
+      00893D 5B 01            [ 2]  491 	addw	sp, #1
+                                    492 ; genIPush
+      00893F 4B 00            [ 1]  493 	push	#0x00
+                                    494 ; genCall
+      008941 CD 8A D0         [ 4]  495 	call	_nrf_writereg
+      008944 5B 02            [ 2]  496 	addw	sp, #2
+      008946 84               [ 1]  497 	pop	a
+                                    498 ;	src/nrf24l01.c: 83: while( !(config & (PWR_UP | PRIM_RX)) ) {
+                                    499 ; genLabel
+      008947                        500 00101$:
+                                    501 ; genAnd
+      008947 A5 03            [ 1]  502 	bcp	a, #0x03
+      008949 27 03            [ 1]  503 	jreq	00116$
+      00894B CC 89 58         [ 2]  504 	jp	00103$
+      00894E                        505 00116$:
+                                    506 ; skipping generated iCode
+                                    507 ;	src/nrf24l01.c: 84: config = nrf_readreg( CONFIG );
+                                    508 ; genIPush
+      00894E 4B 00            [ 1]  509 	push	#0x00
+                                    510 ; genCall
+      008950 CD 8A B7         [ 4]  511 	call	_nrf_readreg
+      008953 5B 01            [ 2]  512 	addw	sp, #1
+                                    513 ; genAssign
+                                    514 ; genGoto
+      008955 CC 89 47         [ 2]  515 	jp	00101$
+                                    516 ; genLabel
+      008958                        517 00103$:
+                                    518 ;	src/nrf24l01.c: 87: nrf_ce_high();
+                                    519 ; genCall
+      008958 CD 8A 9D         [ 4]  520 	call	_nrf_ce_high
+                                    521 ;	src/nrf24l01.c: 88: nrf_sendcmd( FLUSH_RX );
+                                    522 ; genIPush
+      00895B 4B E2            [ 1]  523 	push	#0xe2
+                                    524 ; genCall
+      00895D CD 8A A6         [ 4]  525 	call	_nrf_sendcmd
+      008960 84               [ 1]  526 	pop	a
+                                    527 ; genLabel
+      008961                        528 00104$:
+                                    529 ;	src/nrf24l01.c: 89: }
+                                    530 ; genEndFunction
+      008961 81               [ 4]  531 	ret
+                                    532 ;	src/nrf24l01.c: 92: void nrf_tx_enable(void) {
+                                    533 ; genLabel
+                                    534 ;	-----------------------------------------
+                                    535 ;	 function nrf_tx_enable
+                                    536 ;	-----------------------------------------
+                                    537 ;	Register assignment is optimal.
+                                    538 ;	Stack space usage: 0 bytes.
+      008962                        539 _nrf_tx_enable:
+                                    540 ;	src/nrf24l01.c: 94: nrf_ce_low();
+                                    541 ; genCall
+      008962 CD 8A 94         [ 4]  542 	call	_nrf_ce_low
+                                    543 ;	src/nrf24l01.c: 96: config = nrf_readreg( CONFIG );
+                                    544 ; genIPush
+      008965 4B 00            [ 1]  545 	push	#0x00
+                                    546 ; genCall
+      008967 CD 8A B7         [ 4]  547 	call	_nrf_readreg
+      00896A 5B 01            [ 2]  548 	addw	sp, #1
+                                    549 ; genAssign
+                                    550 ;	src/nrf24l01.c: 97: config &= ~(PRIM_RX);
+                                    551 ; genAnd
+      00896C A4 FE            [ 1]  552 	and	a, #0xfe
+                                    553 ;	src/nrf24l01.c: 98: nrf_writereg( CONFIG, config | PWR_UP );
+                                    554 ; genOr
+      00896E 88               [ 1]  555 	push	a
+      00896F AA 02            [ 1]  556 	or	a, #0x02
+      008971 97               [ 1]  557 	ld	xl, a
+      008972 84               [ 1]  558 	pop	a
+                                    559 ; genIPush
+      008973 88               [ 1]  560 	push	a
+      008974 89               [ 2]  561 	pushw	x
+      008975 5B 01            [ 2]  562 	addw	sp, #1
+                                    563 ; genIPush
+      008977 4B 00            [ 1]  564 	push	#0x00
+                                    565 ; genCall
+      008979 CD 8A D0         [ 4]  566 	call	_nrf_writereg
+      00897C 5B 02            [ 2]  567 	addw	sp, #2
+      00897E 84               [ 1]  568 	pop	a
+                                    569 ;	src/nrf24l01.c: 99: while( !(config & PWR_UP) ) {
+                                    570 ; genLabel
+      00897F                        571 00101$:
+                                    572 ; genAnd
+      00897F A5 02            [ 1]  573 	bcp	a, #0x02
+      008981 27 03            [ 1]  574 	jreq	00116$
+      008983 CC 89 90         [ 2]  575 	jp	00103$
+      008986                        576 00116$:
+                                    577 ; skipping generated iCode
+                                    578 ;	src/nrf24l01.c: 100: config = nrf_readreg( CONFIG );
+                                    579 ; genIPush
+      008986 4B 00            [ 1]  580 	push	#0x00
+                                    581 ; genCall
+      008988 CD 8A B7         [ 4]  582 	call	_nrf_readreg
+      00898B 5B 01            [ 2]  583 	addw	sp, #1
+                                    584 ; genAssign
+                                    585 ; genGoto
+      00898D CC 89 7F         [ 2]  586 	jp	00101$
+                                    587 ; genLabel
+      008990                        588 00103$:
+                                    589 ;	src/nrf24l01.c: 102: nrf_sendcmd( FLUSH_TX );
+                                    590 ; genIPush
+      008990 4B E1            [ 1]  591 	push	#0xe1
+                                    592 ; genCall
+      008992 CD 8A A6         [ 4]  593 	call	_nrf_sendcmd
+      008995 84               [ 1]  594 	pop	a
+                                    595 ; genLabel
+      008996                        596 00104$:
+                                    597 ;	src/nrf24l01.c: 103: }
+                                    598 ; genEndFunction
+      008996 81               [ 4]  599 	ret
+                                    600 ;	src/nrf24l01.c: 106: void nrf_read_rx(uint8_t *data, uint8_t len) {
+                                    601 ; genLabel
+                                    602 ;	-----------------------------------------
+                                    603 ;	 function nrf_read_rx
+                                    604 ;	-----------------------------------------
+                                    605 ;	Register assignment is optimal.
+                                    606 ;	Stack space usage: 1 bytes.
+      008997                        607 _nrf_read_rx:
+      008997 88               [ 1]  608 	push	a
+                                    609 ;	src/nrf24l01.c: 107: nrf_csn_enable();
+                                    610 ; genCall
+      008998 CD 8A 79         [ 4]  611 	call	_nrf_csn_enable
+                                    612 ;	src/nrf24l01.c: 108: spi_transmit( R_RX_PAYLOAD );
+                                    613 ; genIPush
+      00899B 4B 61            [ 1]  614 	push	#0x61
+                                    615 ; genCall
+      00899D CD 83 F5         [ 4]  616 	call	_spi_transmit
+      0089A0 84               [ 1]  617 	pop	a
+                                    618 ;	src/nrf24l01.c: 109: while(len--) {
+                                    619 ; genAssign
+      0089A1 1E 04            [ 2]  620 	ldw	x, (0x04, sp)
+                                    621 ; genAssign
+      0089A3 7B 06            [ 1]  622 	ld	a, (0x06, sp)
+      0089A5 6B 01            [ 1]  623 	ld	(0x01, sp), a
+                                    624 ; genLabel
+      0089A7                        625 00101$:
+                                    626 ; genAssign
+      0089A7 7B 01            [ 1]  627 	ld	a, (0x01, sp)
+                                    628 ; genMinus
+      0089A9 0A 01            [ 1]  629 	dec	(0x01, sp)
+                                    630 ; genIfx
+      0089AB 4D               [ 1]  631 	tnz	a
+      0089AC 26 03            [ 1]  632 	jrne	00117$
+      0089AE CC 89 BF         [ 2]  633 	jp	00103$
+      0089B1                        634 00117$:
+                                    635 ;	src/nrf24l01.c: 110: *data++ = spi_transmit( NOP );
+                                    636 ; genIPush
+      0089B1 89               [ 2]  637 	pushw	x
+      0089B2 4B FF            [ 1]  638 	push	#0xff
+                                    639 ; genCall
+      0089B4 CD 83 F5         [ 4]  640 	call	_spi_transmit
+      0089B7 5B 01            [ 2]  641 	addw	sp, #1
+      0089B9 85               [ 2]  642 	popw	x
+                                    643 ; genPointerSet
+      0089BA F7               [ 1]  644 	ld	(x), a
+                                    645 ; genPlus
+      0089BB 5C               [ 1]  646 	incw	x
+                                    647 ; genGoto
+      0089BC CC 89 A7         [ 2]  648 	jp	00101$
+                                    649 ; genLabel
+      0089BF                        650 00103$:
+                                    651 ;	src/nrf24l01.c: 112: nrf_csn_disable();
+                                    652 ; genCall
+      0089BF 84               [ 1]  653 	pop	a
+      0089C0 CC 8A 82         [ 2]  654 	jp	_nrf_csn_disable
+                                    655 ; genLabel
+      0089C3                        656 00104$:
+                                    657 ;	src/nrf24l01.c: 113: }
+                                    658 ; genEndFunction
+      0089C3 84               [ 1]  659 	pop	a
+      0089C4 81               [ 4]  660 	ret
+                                    661 ;	src/nrf24l01.c: 116: void nrf_write_tx(uint8_t *data, uint8_t len) {
+                                    662 ; genLabel
+                                    663 ;	-----------------------------------------
+                                    664 ;	 function nrf_write_tx
+                                    665 ;	-----------------------------------------
+                                    666 ;	Register assignment is optimal.
+                                    667 ;	Stack space usage: 0 bytes.
+      0089C5                        668 _nrf_write_tx:
+                                    669 ;	src/nrf24l01.c: 117: nrf_writereg_many(1, W_TX_PAYLOAD, data, len);
+                                    670 ; genIPush
+      0089C5 7B 05            [ 1]  671 	ld	a, (0x05, sp)
+      0089C7 88               [ 1]  672 	push	a
+                                    673 ; genIPush
+      0089C8 1E 04            [ 2]  674 	ldw	x, (0x04, sp)
+      0089CA 89               [ 2]  675 	pushw	x
+                                    676 ; genIPush
+      0089CB 4B A0            [ 1]  677 	push	#0xa0
+                                    678 ; genIPush
+      0089CD 4B 01            [ 1]  679 	push	#0x01
+                                    680 ; genCall
+      0089CF CD 8A E9         [ 4]  681 	call	_nrf_writereg_many
+      0089D2 5B 05            [ 2]  682 	addw	sp, #5
+                                    683 ;	src/nrf24l01.c: 118: nrf_ce_high();
+                                    684 ; genCall
+      0089D4 CD 8A 9D         [ 4]  685 	call	_nrf_ce_high
+                                    686 ;	src/nrf24l01.c: 119: delay(100);
+                                    687 ; genIPush
+      0089D7 4B 64            [ 1]  688 	push	#0x64
+      0089D9 4B 00            [ 1]  689 	push	#0x00
+                                    690 ; genCall
+      0089DB CD 83 9A         [ 4]  691 	call	_delay
+      0089DE 5B 02            [ 2]  692 	addw	sp, #2
+                                    693 ;	src/nrf24l01.c: 120: nrf_ce_low();
+                                    694 ; genCall
+      0089E0 CC 8A 94         [ 2]  695 	jp	_nrf_ce_low
+                                    696 ; genLabel
+      0089E3                        697 00101$:
+                                    698 ;	src/nrf24l01.c: 121: }
+                                    699 ; genEndFunction
+      0089E3 81               [ 4]  700 	ret
+                                    701 ;	src/nrf24l01.c: 124: void nrf_register_cb(nrf_cb_f func) {
+                                    702 ; genLabel
+                                    703 ;	-----------------------------------------
+                                    704 ;	 function nrf_register_cb
+                                    705 ;	-----------------------------------------
+                                    706 ;	Register assignment is optimal.
+                                    707 ;	Stack space usage: 0 bytes.
+      0089E4                        708 _nrf_register_cb:
+                                    709 ;	src/nrf24l01.c: 125: sys_nrf.func = func;
+                                    710 ; skipping iCode since result will be rematerialized
+                                    711 ; genPointerSet
+      0089E4 AE 00 2E         [ 2]  712 	ldw	x, #(_sys_nrf + 11)
+      0089E7 16 03            [ 2]  713 	ldw	y, (0x03, sp)
+      0089E9 FF               [ 2]  714 	ldw	(x), y
+                                    715 ; genLabel
+      0089EA                        716 00101$:
+                                    717 ;	src/nrf24l01.c: 126: }
+                                    718 ; genEndFunction
+      0089EA 81               [ 4]  719 	ret
+                                    720 ;	src/nrf24l01.c: 129: void nrf_event(void) {
+                                    721 ; genLabel
+                                    722 ;	-----------------------------------------
+                                    723 ;	 function nrf_event
+                                    724 ;	-----------------------------------------
+                                    725 ;	Register assignment might be sub-optimal.
+                                    726 ;	Stack space usage: 1 bytes.
+      0089EB                        727 _nrf_event:
+      0089EB 88               [ 1]  728 	push	a
+                                    729 ;	src/nrf24l01.c: 130: uint8_t nstatus = 0;
+                                    730 ; genAssign
+      0089EC 0F 01            [ 1]  731 	clr	(0x01, sp)
+                                    732 ;	src/nrf24l01.c: 131: sys_nrf.status = nstatus;
+                                    733 ; skipping iCode since result will be rematerialized
+                                    734 ; genPointerSet
+      0089EE 35 00 00 23      [ 1]  735 	mov	_sys_nrf+0, #0x00
+                                    736 ;	src/nrf24l01.c: 133: if( system.flags & (1<<N_IRQ) ) {
+                                    737 ; skipping iCode since result will be rematerialized
+                                    738 ; genPointerGet
+      0089F2 C6 00 30         [ 1]  739 	ld	a, _system+0
+                                    740 ; genAnd
+      0089F5 A5 02            [ 1]  741 	bcp	a, #0x02
+      0089F7 26 03            [ 1]  742 	jrne	00138$
+      0089F9 CC 8A 64         [ 2]  743 	jp	00111$
+      0089FC                        744 00138$:
+                                    745 ; skipping generated iCode
+                                    746 ;	src/nrf24l01.c: 135: sys_nrf.status = nrf_readreg( STATUS );
+                                    747 ; genIPush
+      0089FC 4B 07            [ 1]  748 	push	#0x07
+                                    749 ; genCall
+      0089FE CD 8A B7         [ 4]  750 	call	_nrf_readreg
+      008A01 5B 01            [ 2]  751 	addw	sp, #1
+                                    752 ; genPointerSet
+      008A03 C7 00 23         [ 1]  753 	ld	_sys_nrf+0, a
+                                    754 ;	src/nrf24l01.c: 136: sys_nrf.pipe_no = (sys_nrf.status >> 1) & 0x07;
+                                    755 ; skipping iCode since result will be rematerialized
+                                    756 ; genPlus
+      008A06 AE 00 24         [ 2]  757 	ldw	x, #(_sys_nrf + 0)+1
+                                    758 ; genPointerGet
+      008A09 C6 00 23         [ 1]  759 	ld	a, _sys_nrf+0
+                                    760 ; genRightShiftLiteral
+      008A0C 44               [ 1]  761 	srl	a
+                                    762 ; genAnd
+      008A0D A4 07            [ 1]  763 	and	a, #0x07
+                                    764 ; genPointerSet
+      008A0F F7               [ 1]  765 	ld	(x), a
+                                    766 ;	src/nrf24l01.c: 138: if( (sys_nrf.status & RX_DR) ) {
+                                    767 ; genPointerGet
+      008A10 C6 00 23         [ 1]  768 	ld	a, _sys_nrf+0
+                                    769 ; genAnd
+      008A13 A5 40            [ 1]  770 	bcp	a, #0x40
+      008A15 26 03            [ 1]  771 	jrne	00139$
+      008A17 CC 8A 29         [ 2]  772 	jp	00102$
+      008A1A                        773 00139$:
+                                    774 ; skipping generated iCode
+                                    775 ;	src/nrf24l01.c: 140: nstatus |= RX_DR;
+                                    776 ; genAssign
+      008A1A A6 40            [ 1]  777 	ld	a, #0x40
+      008A1C 6B 01            [ 1]  778 	ld	(0x01, sp), a
+                                    779 ;	src/nrf24l01.c: 141: nrf_read_rx(sys_nrf.data_rx, PAYLOADSIZE);
+                                    780 ; genPlus
+      008A1E AE 00 25         [ 2]  781 	ldw	x, #(_sys_nrf + 0)+2
+                                    782 ; genCast
+                                    783 ; genAssign
+                                    784 ; genIPush
+      008A21 4B 08            [ 1]  785 	push	#0x08
+                                    786 ; genIPush
+      008A23 89               [ 2]  787 	pushw	x
+                                    788 ; genCall
+      008A24 CD 89 97         [ 4]  789 	call	_nrf_read_rx
+      008A27 5B 03            [ 2]  790 	addw	sp, #3
+                                    791 ; genLabel
+      008A29                        792 00102$:
+                                    793 ;	src/nrf24l01.c: 144: if( (sys_nrf.status & TX_DS) ) {
+                                    794 ; genPointerGet
+      008A29 C6 00 23         [ 1]  795 	ld	a, _sys_nrf+0
+                                    796 ; genAnd
+      008A2C A5 20            [ 1]  797 	bcp	a, #0x20
+      008A2E 26 03            [ 1]  798 	jrne	00140$
+      008A30 CC 8A 3B         [ 2]  799 	jp	00104$
+      008A33                        800 00140$:
+                                    801 ; skipping generated iCode
+                                    802 ;	src/nrf24l01.c: 146: nstatus |= TX_DS;
+                                    803 ; genOr
+      008A33 88               [ 1]  804 	push	a
+      008A34 7B 02            [ 1]  805 	ld	a, (0x02, sp)
+      008A36 AA 20            [ 1]  806 	or	a, #0x20
+      008A38 6B 02            [ 1]  807 	ld	(0x02, sp), a
+      008A3A 84               [ 1]  808 	pop	a
+                                    809 ; genLabel
+      008A3B                        810 00104$:
+                                    811 ;	src/nrf24l01.c: 149: if( (sys_nrf.status & MAX_RT) ) {
+                                    812 ; genAnd
+      008A3B A5 10            [ 1]  813 	bcp	a, #0x10
+      008A3D 26 03            [ 1]  814 	jrne	00141$
+      008A3F CC 8A 48         [ 2]  815 	jp	00106$
+      008A42                        816 00141$:
+                                    817 ; skipping generated iCode
+                                    818 ;	src/nrf24l01.c: 151: nstatus |= MAX_RT;
+                                    819 ; genOr
+      008A42 7B 01            [ 1]  820 	ld	a, (0x01, sp)
+      008A44 AA 10            [ 1]  821 	or	a, #0x10
+      008A46 6B 01            [ 1]  822 	ld	(0x01, sp), a
+                                    823 ; genLabel
+      008A48                        824 00106$:
+                                    825 ;	src/nrf24l01.c: 159: if( sys_nrf.func ) {
+                                    826 ; skipping iCode since result will be rematerialized
+                                    827 ; genPointerGet
+      008A48 CE 00 2E         [ 2]  828 	ldw	x, _sys_nrf+11
+                                    829 ; genIfx
+      008A4B 5D               [ 2]  830 	tnzw	x
+      008A4C 26 03            [ 1]  831 	jrne	00142$
+      008A4E CC 8A 52         [ 2]  832 	jp	00108$
+      008A51                        833 00142$:
+                                    834 ;	src/nrf24l01.c: 160: sys_nrf.func();
+                                    835 ; genCall
+      008A51 FD               [ 4]  836 	call	(x)
+                                    837 ; genLabel
+      008A52                        838 00108$:
+                                    839 ;	src/nrf24l01.c: 163: nrf_writereg( STATUS, nstatus );
+                                    840 ; genIPush
+      008A52 7B 01            [ 1]  841 	ld	a, (0x01, sp)
+      008A54 88               [ 1]  842 	push	a
+                                    843 ; genIPush
+      008A55 4B 07            [ 1]  844 	push	#0x07
+                                    845 ; genCall
+      008A57 CD 8A D0         [ 4]  846 	call	_nrf_writereg
+      008A5A 5B 02            [ 2]  847 	addw	sp, #2
+                                    848 ;	src/nrf24l01.c: 164: ClrBit(system.flags, N_IRQ);
+                                    849 ; genPointerGet
+      008A5C C6 00 30         [ 1]  850 	ld	a, _system+0
+                                    851 ; genAnd
+      008A5F A4 FD            [ 1]  852 	and	a, #0xfd
+                                    853 ; genPointerSet
+      008A61 C7 00 30         [ 1]  854 	ld	_system+0, a
+                                    855 ; genLabel
+      008A64                        856 00111$:
+                                    857 ;	src/nrf24l01.c: 166: }
+                                    858 ; genEndFunction
+      008A64 84               [ 1]  859 	pop	a
+      008A65 81               [ 4]  860 	ret
+                                    861 ;	src/nrf24l01.c: 169: void nrf_clear_rxbuff(void) {
+                                    862 ; genLabel
+                                    863 ;	-----------------------------------------
+                                    864 ;	 function nrf_clear_rxbuff
+                                    865 ;	-----------------------------------------
+                                    866 ;	Register assignment is optimal.
+                                    867 ;	Stack space usage: 0 bytes.
+      008A66                        868 _nrf_clear_rxbuff:
+                                    869 ;	src/nrf24l01.c: 170: for(uint8_t x=0; x<PAYLOADSIZE; x++) {
+                                    870 ; skipping iCode since result will be rematerialized
+                                    871 ; genAssign
+      008A66 4F               [ 1]  872 	clr	a
+                                    873 ; genLabel
+      008A67                        874 00103$:
+                                    875 ; genCmp
+                                    876 ; genCmpTop
+      008A67 A1 08            [ 1]  877 	cp	a, #0x08
+      008A69 25 03            [ 1]  878 	jrc	00118$
+      008A6B CC 8A 78         [ 2]  879 	jp	00105$
+      008A6E                        880 00118$:
+                                    881 ; skipping generated iCode
+                                    882 ;	src/nrf24l01.c: 171: sys_nrf.data_rx[x] = 0;
+                                    883 ; genPlus
+      008A6E 5F               [ 1]  884 	clrw	x
+      008A6F 97               [ 1]  885 	ld	xl, a
+      008A70 1C 00 25         [ 2]  886 	addw	x, #(_sys_nrf + 2)
+                                    887 ; genPointerSet
+      008A73 7F               [ 1]  888 	clr	(x)
+                                    889 ;	src/nrf24l01.c: 170: for(uint8_t x=0; x<PAYLOADSIZE; x++) {
+                                    890 ; genPlus
+      008A74 4C               [ 1]  891 	inc	a
+                                    892 ; genGoto
+      008A75 CC 8A 67         [ 2]  893 	jp	00103$
+                                    894 ; genLabel
+      008A78                        895 00105$:
+                                    896 ;	src/nrf24l01.c: 173: }
+                                    897 ; genEndFunction
+      008A78 81               [ 4]  898 	ret
+                                    899 ;	src/nrf24l01.c: 176: void nrf_csn_enable(void) {
+                                    900 ; genLabel
+                                    901 ;	-----------------------------------------
+                                    902 ;	 function nrf_csn_enable
+                                    903 ;	-----------------------------------------
+                                    904 ;	Register assignment is optimal.
+                                    905 ;	Stack space usage: 0 bytes.
+      008A79                        906 _nrf_csn_enable:
+                                    907 ;	src/nrf24l01.c: 177: ClrBit(GPIOA->ODR, 3);
+                                    908 ; genPointerGet
+      008A79 C6 50 00         [ 1]  909 	ld	a, 0x5000
+                                    910 ; genAnd
+      008A7C A4 F7            [ 1]  911 	and	a, #0xf7
+                                    912 ; genPointerSet
+      008A7E C7 50 00         [ 1]  913 	ld	0x5000, a
+                                    914 ; genLabel
+      008A81                        915 00101$:
+                                    916 ;	src/nrf24l01.c: 178: }
+                                    917 ; genEndFunction
+      008A81 81               [ 4]  918 	ret
+                                    919 ;	src/nrf24l01.c: 181: void nrf_csn_disable(void) {
+                                    920 ; genLabel
+                                    921 ;	-----------------------------------------
+                                    922 ;	 function nrf_csn_disable
+                                    923 ;	-----------------------------------------
+                                    924 ;	Register assignment is optimal.
+                                    925 ;	Stack space usage: 0 bytes.
+      008A82                        926 _nrf_csn_disable:
+                                    927 ;	src/nrf24l01.c: 182: while( (SPI->SR & SPI_SR_BSY) );
+                                    928 ; genLabel
+      008A82                        929 00101$:
+                                    930 ; genPointerGet
+      008A82 C6 52 03         [ 1]  931 	ld	a, 0x5203
+                                    932 ; genAnd
+      008A85 4D               [ 1]  933 	tnz	a
+      008A86 2A 03            [ 1]  934 	jrpl	00116$
+      008A88 CC 8A 82         [ 2]  935 	jp	00101$
+      008A8B                        936 00116$:
+                                    937 ; skipping generated iCode
+                                    938 ;	src/nrf24l01.c: 183: SetBit(GPIOA->ODR, 3);
+                                    939 ; genPointerGet
+      008A8B C6 50 00         [ 1]  940 	ld	a, 0x5000
+                                    941 ; genOr
+      008A8E AA 08            [ 1]  942 	or	a, #0x08
+                                    943 ; genPointerSet
+      008A90 C7 50 00         [ 1]  944 	ld	0x5000, a
+                                    945 ; genLabel
+      008A93                        946 00104$:
+                                    947 ;	src/nrf24l01.c: 184: }
+                                    948 ; genEndFunction
+      008A93 81               [ 4]  949 	ret
+                                    950 ;	src/nrf24l01.c: 187: void nrf_ce_low(void) {
+                                    951 ; genLabel
+                                    952 ;	-----------------------------------------
+                                    953 ;	 function nrf_ce_low
+                                    954 ;	-----------------------------------------
+                                    955 ;	Register assignment is optimal.
+                                    956 ;	Stack space usage: 0 bytes.
+      008A94                        957 _nrf_ce_low:
+                                    958 ;	src/nrf24l01.c: 188: ClrBit(GPIOA->ODR, 2);
+                                    959 ; genPointerGet
+      008A94 C6 50 00         [ 1]  960 	ld	a, 0x5000
+                                    961 ; genAnd
+      008A97 A4 FB            [ 1]  962 	and	a, #0xfb
+                                    963 ; genPointerSet
+      008A99 C7 50 00         [ 1]  964 	ld	0x5000, a
+                                    965 ; genLabel
+      008A9C                        966 00101$:
+                                    967 ;	src/nrf24l01.c: 189: }
+                                    968 ; genEndFunction
+      008A9C 81               [ 4]  969 	ret
+                                    970 ;	src/nrf24l01.c: 192: void nrf_ce_high(void) {
+                                    971 ; genLabel
+                                    972 ;	-----------------------------------------
+                                    973 ;	 function nrf_ce_high
+                                    974 ;	-----------------------------------------
+                                    975 ;	Register assignment is optimal.
+                                    976 ;	Stack space usage: 0 bytes.
+      008A9D                        977 _nrf_ce_high:
+                                    978 ;	src/nrf24l01.c: 193: SetBit(GPIOA->ODR, 2);
+                                    979 ; genPointerGet
+      008A9D C6 50 00         [ 1]  980 	ld	a, 0x5000
+                                    981 ; genOr
+      008AA0 AA 04            [ 1]  982 	or	a, #0x04
+                                    983 ; genPointerSet
+      008AA2 C7 50 00         [ 1]  984 	ld	0x5000, a
+                                    985 ; genLabel
+      008AA5                        986 00101$:
+                                    987 ;	src/nrf24l01.c: 194: }
+                                    988 ; genEndFunction
+      008AA5 81               [ 4]  989 	ret
+                                    990 ;	src/nrf24l01.c: 197: uint8_t nrf_sendcmd(uint8_t cmd) {
+                                    991 ; genLabel
+                                    992 ;	-----------------------------------------
+                                    993 ;	 function nrf_sendcmd
+                                    994 ;	-----------------------------------------
+                                    995 ;	Register assignment is optimal.
+                                    996 ;	Stack space usage: 0 bytes.
+      008AA6                        997 _nrf_sendcmd:
+                                    998 ;	src/nrf24l01.c: 199: nrf_csn_enable();
+                                    999 ; genCall
+      008AA6 CD 8A 79         [ 4] 1000 	call	_nrf_csn_enable
+                                   1001 ;	src/nrf24l01.c: 200: status = spi_transmit( cmd );
+                                   1002 ; genIPush
+      008AA9 7B 03            [ 1] 1003 	ld	a, (0x03, sp)
+      008AAB 88               [ 1] 1004 	push	a
+                                   1005 ; genCall
+      008AAC CD 83 F5         [ 4] 1006 	call	_spi_transmit
+      008AAF 5B 01            [ 2] 1007 	addw	sp, #1
+                                   1008 ; genAssign
+                                   1009 ;	src/nrf24l01.c: 201: nrf_csn_disable();
+                                   1010 ; genCall
+      008AB1 88               [ 1] 1011 	push	a
+      008AB2 CD 8A 82         [ 4] 1012 	call	_nrf_csn_disable
+      008AB5 84               [ 1] 1013 	pop	a
+                                   1014 ;	src/nrf24l01.c: 202: return status;
+                                   1015 ; genReturn
+                                   1016 ; genLabel
+      008AB6                       1017 00101$:
+                                   1018 ;	src/nrf24l01.c: 203: }
+                                   1019 ; genEndFunction
+      008AB6 81               [ 4] 1020 	ret
+                                   1021 ;	src/nrf24l01.c: 206: uint8_t nrf_readreg(uint8_t reg) {
+                                   1022 ; genLabel
+                                   1023 ;	-----------------------------------------
+                                   1024 ;	 function nrf_readreg
+                                   1025 ;	-----------------------------------------
+                                   1026 ;	Register assignment is optimal.
+                                   1027 ;	Stack space usage: 0 bytes.
+      008AB7                       1028 _nrf_readreg:
+                                   1029 ;	src/nrf24l01.c: 208: nrf_csn_enable();
+                                   1030 ; genCall
+      008AB7 CD 8A 79         [ 4] 1031 	call	_nrf_csn_enable
+                                   1032 ;	src/nrf24l01.c: 209: spi_transmit(R_REGISTER | (REGISTER_MASK & reg) );
+                                   1033 ; genAssign
+      008ABA 7B 03            [ 1] 1034 	ld	a, (0x03, sp)
+                                   1035 ; genAnd
+      008ABC A4 1F            [ 1] 1036 	and	a, #0x1f
+                                   1037 ; genIPush
+      008ABE 88               [ 1] 1038 	push	a
+                                   1039 ; genCall
+      008ABF CD 83 F5         [ 4] 1040 	call	_spi_transmit
+      008AC2 84               [ 1] 1041 	pop	a
+                                   1042 ;	src/nrf24l01.c: 210: data = spi_transmit(NOP);
+                                   1043 ; genIPush
+      008AC3 4B FF            [ 1] 1044 	push	#0xff
+                                   1045 ; genCall
+      008AC5 CD 83 F5         [ 4] 1046 	call	_spi_transmit
+      008AC8 5B 01            [ 2] 1047 	addw	sp, #1
+                                   1048 ; genAssign
+                                   1049 ;	src/nrf24l01.c: 211: nrf_csn_disable();
+                                   1050 ; genCall
+      008ACA 88               [ 1] 1051 	push	a
+      008ACB CD 8A 82         [ 4] 1052 	call	_nrf_csn_disable
+      008ACE 84               [ 1] 1053 	pop	a
+                                   1054 ;	src/nrf24l01.c: 212: return data;
+                                   1055 ; genReturn
+                                   1056 ; genLabel
+      008ACF                       1057 00101$:
+                                   1058 ;	src/nrf24l01.c: 213: }
+                                   1059 ; genEndFunction
+      008ACF 81               [ 4] 1060 	ret
+                                   1061 ;	src/nrf24l01.c: 216: void nrf_writereg(uint8_t reg, uint8_t data) {
+                                   1062 ; genLabel
+                                   1063 ;	-----------------------------------------
+                                   1064 ;	 function nrf_writereg
+                                   1065 ;	-----------------------------------------
+                                   1066 ;	Register assignment is optimal.
+                                   1067 ;	Stack space usage: 0 bytes.
+      008AD0                       1068 _nrf_writereg:
+                                   1069 ;	src/nrf24l01.c: 217: nrf_csn_enable();
+                                   1070 ; genCall
+      008AD0 CD 8A 79         [ 4] 1071 	call	_nrf_csn_enable
+                                   1072 ;	src/nrf24l01.c: 218: spi_transmit(W_REGISTER | (REGISTER_MASK & reg) );
+                                   1073 ; genAssign
+      008AD3 7B 03            [ 1] 1074 	ld	a, (0x03, sp)
+                                   1075 ; genAnd
+      008AD5 A4 1F            [ 1] 1076 	and	a, #0x1f
+                                   1077 ; genOr
+      008AD7 AA 20            [ 1] 1078 	or	a, #0x20
+                                   1079 ; genIPush
+      008AD9 88               [ 1] 1080 	push	a
+                                   1081 ; genCall
+      008ADA CD 83 F5         [ 4] 1082 	call	_spi_transmit
+      008ADD 84               [ 1] 1083 	pop	a
+                                   1084 ;	src/nrf24l01.c: 219: spi_transmit(data);
+                                   1085 ; genIPush
+      008ADE 7B 04            [ 1] 1086 	ld	a, (0x04, sp)
+      008AE0 88               [ 1] 1087 	push	a
+                                   1088 ; genCall
+      008AE1 CD 83 F5         [ 4] 1089 	call	_spi_transmit
+      008AE4 84               [ 1] 1090 	pop	a
+                                   1091 ;	src/nrf24l01.c: 220: nrf_csn_disable();
+                                   1092 ; genCall
+      008AE5 CC 8A 82         [ 2] 1093 	jp	_nrf_csn_disable
+                                   1094 ; genLabel
+      008AE8                       1095 00101$:
+                                   1096 ;	src/nrf24l01.c: 221: }
+                                   1097 ; genEndFunction
+      008AE8 81               [ 4] 1098 	ret
+                                   1099 ;	src/nrf24l01.c: 224: void nrf_writereg_many(uint8_t cmd, uint8_t reg, uint8_t *data, uint8_t len) {
+                                   1100 ; genLabel
+                                   1101 ;	-----------------------------------------
+                                   1102 ;	 function nrf_writereg_many
+                                   1103 ;	-----------------------------------------
+                                   1104 ;	Register assignment is optimal.
+                                   1105 ;	Stack space usage: 1 bytes.
+      008AE9                       1106 _nrf_writereg_many:
+      008AE9 88               [ 1] 1107 	push	a
+                                   1108 ;	src/nrf24l01.c: 225: nrf_csn_enable();
+                                   1109 ; genCall
+      008AEA CD 8A 79         [ 4] 1110 	call	_nrf_csn_enable
+                                   1111 ;	src/nrf24l01.c: 227: if( cmd ) {
+                                   1112 ; genIfx
+      008AED 0D 04            [ 1] 1113 	tnz	(0x04, sp)
+      008AEF 26 03            [ 1] 1114 	jrne	00125$
+      008AF1 CC 8A FE         [ 2] 1115 	jp	00102$
+      008AF4                       1116 00125$:
+                                   1117 ;	src/nrf24l01.c: 228: spi_transmit( reg );
+                                   1118 ; genIPush
+      008AF4 7B 05            [ 1] 1119 	ld	a, (0x05, sp)
+      008AF6 88               [ 1] 1120 	push	a
+                                   1121 ; genCall
+      008AF7 CD 83 F5         [ 4] 1122 	call	_spi_transmit
+      008AFA 84               [ 1] 1123 	pop	a
+                                   1124 ; genGoto
+      008AFB CC 8B 09         [ 2] 1125 	jp	00111$
+                                   1126 ; genLabel
+      008AFE                       1127 00102$:
+                                   1128 ;	src/nrf24l01.c: 230: spi_transmit(W_REGISTER | (REGISTER_MASK & reg) );
+                                   1129 ; genAssign
+      008AFE 7B 05            [ 1] 1130 	ld	a, (0x05, sp)
+                                   1131 ; genAnd
+      008B00 A4 1F            [ 1] 1132 	and	a, #0x1f
+                                   1133 ; genOr
+      008B02 AA 20            [ 1] 1134 	or	a, #0x20
+                                   1135 ; genIPush
+      008B04 88               [ 1] 1136 	push	a
+                                   1137 ; genCall
+      008B05 CD 83 F5         [ 4] 1138 	call	_spi_transmit
+      008B08 84               [ 1] 1139 	pop	a
+                                   1140 ;	src/nrf24l01.c: 233: while(len--) {
+                                   1141 ; genLabel
+      008B09                       1142 00111$:
+                                   1143 ; genAssign
+      008B09 1E 06            [ 2] 1144 	ldw	x, (0x06, sp)
+                                   1145 ; genAssign
+      008B0B 7B 08            [ 1] 1146 	ld	a, (0x08, sp)
+      008B0D 6B 01            [ 1] 1147 	ld	(0x01, sp), a
+                                   1148 ; genLabel
+      008B0F                       1149 00104$:
+                                   1150 ; genAssign
+      008B0F 7B 01            [ 1] 1151 	ld	a, (0x01, sp)
+                                   1152 ; genMinus
+      008B11 0A 01            [ 1] 1153 	dec	(0x01, sp)
+                                   1154 ; genIfx
+      008B13 4D               [ 1] 1155 	tnz	a
+      008B14 26 03            [ 1] 1156 	jrne	00126$
+      008B16 CC 8B 27         [ 2] 1157 	jp	00106$
+      008B19                       1158 00126$:
+                                   1159 ;	src/nrf24l01.c: 234: spi_transmit(*data++);
+                                   1160 ; genPointerGet
+      008B19 F6               [ 1] 1161 	ld	a, (x)
+                                   1162 ; genPlus
+      008B1A 5C               [ 1] 1163 	incw	x
+                                   1164 ; genAssign
+      008B1B 1F 06            [ 2] 1165 	ldw	(0x06, sp), x
+                                   1166 ; genIPush
+      008B1D 89               [ 2] 1167 	pushw	x
+      008B1E 88               [ 1] 1168 	push	a
+                                   1169 ; genCall
+      008B1F CD 83 F5         [ 4] 1170 	call	_spi_transmit
+      008B22 84               [ 1] 1171 	pop	a
+      008B23 85               [ 2] 1172 	popw	x
+                                   1173 ; genGoto
+      008B24 CC 8B 0F         [ 2] 1174 	jp	00104$
+                                   1175 ; genLabel
+      008B27                       1176 00106$:
+                                   1177 ;	src/nrf24l01.c: 236: nrf_csn_disable();
+                                   1178 ; genCall
+      008B27 84               [ 1] 1179 	pop	a
+      008B28 CC 8A 82         [ 2] 1180 	jp	_nrf_csn_disable
+                                   1181 ; genLabel
+      008B2B                       1182 00107$:
+                                   1183 ;	src/nrf24l01.c: 237: }
+                                   1184 ; genEndFunction
+      008B2B 84               [ 1] 1185 	pop	a
+      008B2C 81               [ 4] 1186 	ret
+                                   1187 	.area CODE
+                                   1188 	.area CONST
+                                   1189 	.area INITIALIZER
+                                   1190 	.area CABS (ABS)
