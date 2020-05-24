@@ -34,9 +34,8 @@ typedef struct {
     uint8_t flags;
 } sys_t;
 
-extern sys_t system;
 
-
+sys_t *GetSysHeader(void);
 
 void setup(void);
 void delay(uint16_t time);

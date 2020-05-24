@@ -8,28 +8,10 @@
 #include "uart.h"
 #include "mnprot.h"
 
-//volatile T_circ_buffer uart_tx_Buff;
-//volatile T_circ_buffer uart_rx_Buff;
-
-nrf_t sys_nrf;
-sys_t system;
-
 uint8_t pload[4] = {'C', 'C', 'C', 'C'};
 
 int main(void) {
 
-    //uint8_t tx_Buff[TX_BUFF_SIZE];
-    //uint8_t rx_Buff[RX_BUFF_SIZE];
-
-    //uart_tx_Buff.buffer = tx_Buff;
-    //uart_tx_Buff.head = 0;
-    //uart_tx_Buff.tail = 0;
-
-    //uart_rx_Buff.buffer = rx_Buff;
-    //uart_rx_Buff.head = 0;
-    //uart_rx_Buff.tail = 0;
-
-    
     setup();
     nrf_init_hw();
     spi_init();

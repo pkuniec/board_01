@@ -25,7 +25,6 @@ typedef struct {
 	mn_execute_cb execute;
 } mn_frame_t;
 
-extern mn_frame_t mn_frame;
 
 void mn_register_cb(mn_execute_cb func);
 void mn_send(uint8_t dest, uint8_t ttl, uint8_t *data, uint8_t ack);

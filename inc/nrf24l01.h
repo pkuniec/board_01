@@ -22,8 +22,7 @@ typedef struct {
 } nrf_t;
 
 
-extern nrf_t sys_nrf;
-
+nrf_t *GetNrfHandler(void);
 void nrf_power(uint8_t power);
 void nrf_init_hw(void);
 void nrf_init_sw(void);

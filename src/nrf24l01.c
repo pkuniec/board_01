@@ -5,6 +5,13 @@
 #include "nrf24l01_mem.h"
 #include "uart.h"
 
+
+nrf_t *GetNrfHandler(void) {
+    static nrf_t nrf;
+    return &nrf;
+}
+
+
 void nrf_init_hw(void) {
 	// GPIO
 	GPIOA->DDR |= SPI_CE | SPI_CSN;
@@ -122,52 +129,56 @@ void nrf_write_tx(uint8_t *data, uint8_t len) {
 
 
 void nrf_register_cb(nrf_cb_f func) {
-	sys_nrf.func = func;
+    nrf_t *nrf = GetNrfHandler();
+	nrf->func = func;
 }
 
 
 void nrf_event(void) {
+    sys_t *sys = GetSysHeader();
+    nrf_t *nrf = GetNrfHandler();
 	uint8_t nstatus;
-	sys_nrf.status = nstatus = 0;
+	nrf->status = nstatus = 0;
 
-	if( system.flags & (1<<N_IRQ) ) {
+	if( sys->flags & (1<<N_IRQ) ) {
 		// NRF24L01 interrupt notify
-		sys_nrf.status = nrf_readreg( STATUS );
-		sys_nrf.pipe_no = (sys_nrf.status >> 1) & 0x07;
+		nrf->status = nrf_readreg( STATUS );
+		nrf->pipe_no = (nrf->status >> 1) & 0x07;
 
-		if( (sys_nrf.status & RX_DR) ) {
+		if( (nrf->status & RX_DR) ) {
 			// data receive
 			nstatus |= RX_DR;
-			nrf_read_rx(sys_nrf.data_rx, PAYLOADSIZE);
+			nrf_read_rx(nrf->data_rx, PAYLOADSIZE);
 		}
 
-		if( (sys_nrf.status & TX_DS) ) {
+		if( (nrf->status & TX_DS) ) {
 			// data send
 			nstatus |= TX_DS;
 		}
 
-		if( (sys_nrf.status & MAX_RT) ) {
+		if( (nrf->status & MAX_RT) ) {
 			// max. retry reached
 			nstatus |= MAX_RT;
 		}
 
-		if( (sys_nrf.status & TX_FULL) ) {
+		if( (nrf->status & TX_FULL) ) {
 			// tx buffor full
 		}
 
-		if( sys_nrf.func ) {
-			sys_nrf.func();
+		if( nrf->func ) {
+			nrf->func();
 		}
 
 		nrf_writereg( STATUS, nstatus );
-		ClrBit(system.flags, N_IRQ);
+		ClrBit(sys->flags, N_IRQ);
 	}	
 }
 
 
 void nrf_clear_rxbuff(void) {
+    nrf_t *nrf = GetNrfHandler();
 	for(uint8_t x=0; x<PAYLOADSIZE; x++) {
-		sys_nrf.data_rx[x] = 0;
+		nrf->data_rx[x] = 0;
 	}
 }
 

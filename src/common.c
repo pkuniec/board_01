@@ -55,6 +55,11 @@ void delay(uint16_t time) {
 }
 
 
+sys_t *GetSysHeader(void) {
+    static sys_t sys;
+    return &sys;
+}
+
 // UART evet
 void uart_event(void) {
 	uint8_t data = 0;
@@ -70,10 +75,11 @@ void uart_event(void) {
 
 // System event check
 void sys_event(void) {
-	if ( system.flags ) {
+    sys_t *sys = GetSysHeader();
+	if ( sys->flags ) {
 		// Flags from external IRQ
-		if ( system.flags & (1<<E_IRQ) ) {
-			ClrBit(system.flags, E_IRQ);
+		if ( sys->flags & (1<<E_IRQ) ) {
+			ClrBit(sys->flags, E_IRQ);
 			uart_putc('E');
 		}
 	}
@@ -179,26 +185,27 @@ void output_set(uint8_t num, uint8_t mode) {
 
 // NRF24L01 function
 void nrf_recv(void) {
-	if ( sys_nrf.status & RX_DR ) {
+    nrf_t *nrf = GetNrfHandler();
+	if ( nrf->status & RX_DR ) {
 		mn_decode_frame();
-		sys_nrf.status &=~ RX_DR;
+		nrf->status &=~ RX_DR;
 	}
 }
 
 
 // NRF24L01 mesh frame execute
 void mn_exec(void) {
-
+    nrf_t *nrf = GetNrfHandler();
 	// Debug only
 	for (uint8_t x=4; x<8; x++) {
-		uart_putc(sys_nrf.data_rx[x]);
+		uart_putc(nrf->data_rx[x]);
 	}
 
-	// if ( sys_nrf.data_rx[4] == 'C' ) {
+	// if ( nrf->data_rx[4] == 'C' ) {
 	// 	output_set(3 ,1);
 	// }
 
-	// if ( sys_nrf.data_rx[4] == 'O' ) {
+	// if ( nrf->data_rx[4] == 'O' ) {
 	// 	output_set(3, 0);
 	// }
 
