@@ -3,9 +3,11 @@
 
 #include "common.h"
 #include "uart.h"
+#include "queue.h"
 #include "nrf24l01.h"
 
 uint8_t sec = 100;
+
 
 void tim4_update(void) __interrupt (IT_TIM4_OVR_UIF) {
 
@@ -21,46 +23,33 @@ void tim4_update(void) __interrupt (IT_TIM4_OVR_UIF) {
 void uart1_tx(void) __interrupt (IT_UART1_TX) {
 	uint8_t sr_reg = UART1->SR;
 
-	if ( uart_tx_Buff.head == uart_tx_Buff.tail ) {
+	queue_t *handler = GetTxHandler();
+	uint8_t data;
+
+	if( !get_queue(handler, &data) ) {
+		if ( sr_reg & UART1_SR_TXE ) {
+		// Rejester TX  pusty
+			UART1->DR = data;
+		}
+	} else {
 		// Enable RX for RS-485 (halfduplex)
 		UART1->CR2 |= UART1_CR2_REN;
 		// Disable TX
 		UART1->CR2 &= ~(UART1_CR2_TIEN | UART1_CR2_TCIEN);
-	} else {
-
-		if ( sr_reg & UART1_SR_TXE ) {
-		// Rejester TX  pusty
-			uart_tx_Buff.tail++;
-			if (uart_tx_Buff.tail == TX_BUFF_SIZE) {
-				uart_tx_Buff.tail = 0;
-			}
-
-			UART1->DR = uart_tx_Buff.buffer[uart_tx_Buff.tail];
-		}
 	}
 
 	if ( sr_reg & UART1_SR_TC ) {
-	// Transsmition complete
+		// Transsmition complete
 		UART1->SR &= ~(UART1_SR_TC);
 	}
 }
 
 
 void uart1_rx(void) __interrupt (IT_UART1_RX) {
+	queue_t *handler = GetRxHandler();
+
 	if ( UART1->SR & UART1_SR_RXNE ) {
-		uint8_t head_temp = uart_rx_Buff.head + 1;
-
-		if ( head_temp == RX_BUFF_SIZE ) {
-			head_temp = 0;
-		}
-
-		if ( head_temp == uart_rx_Buff.tail ) {
-		// brak miejsca w buforze, mozliwa obsluga
-			UART1->SR &= ~UART1_SR_RXNE;
-		} else {
-			uart_rx_Buff.buffer[head_temp] = UART1->DR;
-			uart_rx_Buff.head = head_temp;
-		}
+		add_queue(handler, UART1->DR);
 	}
 }
 

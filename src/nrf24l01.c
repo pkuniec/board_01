@@ -127,8 +127,8 @@ void nrf_register_cb(nrf_cb_f func) {
 
 
 void nrf_event(void) {
-	uint8_t nstatus = 0;
-	sys_nrf.status = nstatus;
+	uint8_t nstatus;
+	sys_nrf.status = nstatus = 0;
 
 	if( system.flags & (1<<N_IRQ) ) {
 		// NRF24L01 interrupt notify
@@ -136,13 +136,13 @@ void nrf_event(void) {
 		sys_nrf.pipe_no = (sys_nrf.status >> 1) & 0x07;
 
 		if( (sys_nrf.status & RX_DR) ) {
-			// odebrano dane
+			// data receive
 			nstatus |= RX_DR;
 			nrf_read_rx(sys_nrf.data_rx, PAYLOADSIZE);
 		}
 
 		if( (sys_nrf.status & TX_DS) ) {
-			// wyslano dane
+			// data send
 			nstatus |= TX_DS;
 		}
 
@@ -152,8 +152,7 @@ void nrf_event(void) {
 		}
 
 		if( (sys_nrf.status & TX_FULL) ) {
-			// bufor nadawczy pełny
-			
+			// tx buffor full
 		}
 
 		if( sys_nrf.func ) {

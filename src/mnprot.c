@@ -7,6 +7,9 @@
 
 mn_frame_t mn_frame;
 
+
+// Register callback function
+// func: function addr
 void mn_register_cb(mn_execute_cb func) {
 	if (func) {
 		mn_frame.execute = func;
@@ -16,6 +19,11 @@ void mn_register_cb(mn_execute_cb func) {
 }
 
 
+// Send data to mesh network
+// dest: destination addr
+// ttl: TTL hop (0-127)
+// data: pointer for data to send
+// ack: ACK (0 - off, 1 - on)
 void mn_send(uint8_t dest, uint8_t ttl, uint8_t *data, uint8_t ack) {
 
 	uint8_t frame[PAYLOADSIZE] = {0};
@@ -44,6 +52,7 @@ void mn_send(uint8_t dest, uint8_t ttl, uint8_t *data, uint8_t ack) {
 }
 
 
+// Decode frame from mesh network
 void mn_decode_frame(void) {
 	if( (sys_nrf.status & RX_DR) ) {
 		if( sys_nrf.data_rx[0] == MN_ADDR ) {
@@ -64,11 +73,12 @@ void mn_decode_frame(void) {
 }
 
 
+// Execute frame
 void mn_execute(void) {
 	uint8_t x;
 	uint8_t e = 1;
 
-	// Check if frame is already been executed
+	// Check if frame already have been executed
 	for( x = 0; x < CMP_BUFF_SIZE; x++) {
 		if( (mn_frame.cmpframe[0][x] == sys_nrf.data_rx[SRC_ADDR]) && (mn_frame.cmpframe[1][x] == sys_nrf.data_rx[FRAME_ID]) ) {
 			e = 0;
@@ -77,7 +87,7 @@ void mn_execute(void) {
 	}
 
 	if( e ) {
-		// save execute frame info in framebuff
+		// save execute frame info in frame buff
 		mn_frame.cframe_idx = (++mn_frame.cframe_idx & (CMP_BUFF_SIZE-1) );
 		mn_frame.cmpframe[0][mn_frame.cframe_idx] = sys_nrf.data_rx[SRC_ADDR]; // source addr.
 		mn_frame.cmpframe[1][mn_frame.cframe_idx] = sys_nrf.data_rx[FRAME_ID]; // frame ID
@@ -99,6 +109,7 @@ void mn_execute(void) {
 }
 
 
+// Retransmit frame to mesh network
 void mn_retransmit(void) {
 	uint8_t ack = (sys_nrf.data_rx[ACK_TTL] & 0x80); // get ACK
 	uint8_t x = (sys_nrf.data_rx[ACK_TTL] & 0x7F);	 // x = TTL

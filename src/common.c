@@ -5,6 +5,8 @@
 #include "nrf24l01_mem.h"
 #include "mnprot.h"
 
+
+// Setup hardware
 void setup(void) {
 
 	// GPIO
@@ -44,7 +46,7 @@ void setup(void) {
 	TIM4->CR1 |= TIM4_CR1_CEN;
 }
 
-
+// Simple block delay function
 void delay(uint16_t time) {
 	while( time ) {
 		time--;
@@ -53,18 +55,20 @@ void delay(uint16_t time) {
 }
 
 
+// UART evet
 void uart_event(void) {
 	uint8_t data = 0;
 
 	if( !uart_recv( &data ) ) {
 		// odebrano znak
 		if ( data == 'a' ) {
-			uart_putc('0' + uart_rx_Buff.head);
+			uart_putc('0');
 		}
 	}
 }
 
 
+// System event check
 void sys_event(void) {
 	if ( system.flags ) {
 		// Flags from external IRQ
@@ -152,11 +156,13 @@ void reg_transfer(uint8_t data) {
 	ClrBit(GPIOA->ODR, LATCH);
 }
 
+
 // Usage Functions
 
 // Set output
 // num: number output
-//		(1: AC1, 2: AC2, 3: Relay 1, 4: Relay 2, 5: Out 1, 6: Out 2, 7: Out 3)
+//		(0: NRF24L01, 1: AC1,   2: AC2,   3: Relay 1,
+//		 4: Relay 2,  5: Out 1, 6: Out 2, 7: Out 3)
 //  mode: output mode (0: off, 1: on)
 void output_set(uint8_t num, uint8_t mode) {
 	static uint8_t reg_data;
@@ -179,20 +185,22 @@ void nrf_recv(void) {
 	}
 }
 
-// NRF24L01 mesh execute
+
+// NRF24L01 mesh frame execute
 void mn_exec(void) {
 
+	// Debug only
 	for (uint8_t x=4; x<8; x++) {
 		uart_putc(sys_nrf.data_rx[x]);
 	}
 
-	if ( sys_nrf.data_rx[4] == 'C' ) {
-		output_set(3 ,1);
-	}
+	// if ( sys_nrf.data_rx[4] == 'C' ) {
+	// 	output_set(3 ,1);
+	// }
 
-	if ( sys_nrf.data_rx[4] == 'O' ) {
-		output_set(3, 0);
-	}
+	// if ( sys_nrf.data_rx[4] == 'O' ) {
+	// 	output_set(3, 0);
+	// }
 
 	nrf_clear_rxbuff();
 }

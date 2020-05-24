@@ -1,8 +1,18 @@
 #include "stm8s.h"
-
 #include "common.h"
+#include "queue.h"
 #include "uart.h"
 
+
+queue_t *GetRxHandler(void) {
+    static queue_t rx_queue;
+    return &rx_queue;
+}
+
+queue_t *GetTxHandler(void) {
+    static queue_t tx_queue;
+    return &tx_queue;
+}
 
 void uart_init(void) {
 	// bautrate 9600 / 2Mhz F_CPU
@@ -14,29 +24,18 @@ void uart_init(void) {
 	UART1->CR2 = UART1_CR2_TEN | UART1_CR2_REN | UART1_CR2_RIEN;
 }
 
-
 int8_t uart_putc(uint8_t c) {
+	queue_t *handler = GetTxHandler();
+	int8_t ret;
 	// Disable RX for RS-485 (halfduplex)
 	UART1->CR2 &= ~(UART1_CR2_REN);
 
-	uint8_t head_temp = uart_tx_Buff.head + 1;
-
-	if ( head_temp == TX_BUFF_SIZE ) {
-		head_temp = 0;
-	}
-
-	if ( head_temp == uart_tx_Buff.tail ) {
-		// brak miejsca w buforze
-		return -1;
-	}
-
-	uart_tx_Buff.buffer[head_temp] = c;
-	uart_tx_Buff.head = head_temp;
+	ret = add_queue(handler, c);
 
 	// Enable TX
 	UART1->CR2 |= UART1_CR2_TIEN | UART1_CR2_TCIEN;
 
-	return 0;
+	return ret;
 }
 
 void uart_puts(uint8_t *str) {
@@ -48,17 +47,6 @@ void uart_puts(uint8_t *str) {
 }
 
 int8_t uart_recv(uint8_t *data) {
-
-	if ( uart_rx_Buff.head == uart_rx_Buff.tail ) {
-		return -1;
-	}
-
-	uart_rx_Buff.tail++;
-
-	if ( uart_rx_Buff.tail == RX_BUFF_SIZE ) {
-		uart_rx_Buff.tail = 0;
-	}
-
-	*data = uart_rx_Buff.buffer[uart_rx_Buff.tail];
-	return 0;
+	queue_t *handler = GetRxHandler();
+	return get_queue(handler, data);
 }
