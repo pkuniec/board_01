@@ -6,6 +6,7 @@
 #include "nrf24l01.h"
 #include "nrf24l01_mem.h"
 #include "uart.h"
+#include "spi.h"
 #include "mnprot.h"
 
 uint8_t pload[4] = {'C', 'C', 'C', 'C'};
@@ -28,7 +29,7 @@ int main(void) {
 
     rim();
 
-    const uint8_t hello[] = {"STM"};
+    const uint8_t hello[] = {"STM8\n"};
     uart_puts(hello);
 
     while( 1 ) {

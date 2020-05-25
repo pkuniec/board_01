@@ -1,9 +1,17 @@
 #include "stm8s.h"
 #include "common.h"
 #include "uart.h"
+#include "spi.h"
 #include "nrf24l01.h"
 #include "nrf24l01_mem.h"
 #include "mnprot.h"
+
+
+// Get SYS variable Handler
+sys_t *GetSysHeader(void) {
+    static sys_t sys;
+    return &sys;
+}
 
 
 // Setup hardware
@@ -55,11 +63,6 @@ void delay(uint16_t time) {
 }
 
 
-sys_t *GetSysHeader(void) {
-    static sys_t sys;
-    return &sys;
-}
-
 // UART evet
 void uart_event(void) {
 	uint8_t data = 0;
@@ -83,25 +86,6 @@ void sys_event(void) {
 			uart_putc('E');
 		}
 	}
-}
-
-
-// Init SPI interface
-void spi_init(void) {
-	//SPI->ICR = SPI_ICR_TXIE | SPI_ICR_RXIE;
-	SPI->CR2 = SPI_CR2_SSM | SPI_CR2_SSI;
-	SPI->CR1 = SPI_CR1_MSTR | SPI_CR1_SPE;// | (SPI_CR1_BR & 0x08);
-}
-
-
-// Transmit SPI data
-// data: byte to write
-// return: byte read from SPI
-uint8_t spi_transmit(uint8_t data) {
-	SPI->DR = data;
-	while( !(SPI->SR & SPI_SR_TXE) );
-	while( !(SPI->SR & SPI_SR_RXNE) );
-	return SPI->DR;
 }
 
 
@@ -200,6 +184,7 @@ void mn_exec(void) {
 	for (uint8_t x=4; x<8; x++) {
 		uart_putc(nrf->data_rx[x]);
 	}
+    uart_putc(' ');
 
 	// if ( nrf->data_rx[4] == 'C' ) {
 	// 	output_set(3 ,1);

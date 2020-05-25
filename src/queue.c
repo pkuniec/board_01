@@ -22,6 +22,8 @@ int8_t get_queue(queue_t *q, uint8_t *value) {
     }
 }
 
+/*
 uint8_t size_queue(queue_t *q) {
     return q->cnt;
 }
+*/

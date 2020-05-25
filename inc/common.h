@@ -47,12 +47,7 @@ void reg_transfer(uint8_t data);
 uint8_t eeprom_read(uint8_t addr);
 void eeprom_write(uint8_t addr, uint8_t *data, uint8_t len);
 
-void spi_init(void);
-uint8_t spi_transmit(uint8_t data);
-
-
 void adc_get(uint16_t *adc);
-
 void output_set(uint8_t num, uint8_t mode);
 
 void nrf_recv(void);

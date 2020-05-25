@@ -24,8 +24,6 @@
 
 
 void tim4_update(void) __interrupt (IT_TIM4_OVR_UIF);
-void uart1_tx(void) __interrupt (IT_UART1_TX);
-void uart1_rx(void) __interrupt (IT_UART1_RX);
 void exti2_irq(void) __interrupt (IT_EXTI2);
 
 //void tli_irq(void) __interrupt(IT_TLI);

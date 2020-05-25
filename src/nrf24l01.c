@@ -4,6 +4,7 @@
 #include "nrf24l01.h"
 #include "nrf24l01_mem.h"
 #include "uart.h"
+#include "spi.h"
 
 
 nrf_t *GetNrfHandler(void) {

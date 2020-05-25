@@ -1,18 +1,9 @@
 #include "stm8s.h"
-#include "common.h"
 #include "queue.h"
 #include "uart.h"
 
+static queue_t rx_queue, tx_queue;
 
-queue_t *GetRxHandler(void) {
-    static queue_t rx_queue;
-    return &rx_queue;
-}
-
-queue_t *GetTxHandler(void) {
-    static queue_t tx_queue;
-    return &tx_queue;
-}
 
 void uart_init(void) {
 	// bautrate 9600 / 2Mhz F_CPU
@@ -25,12 +16,11 @@ void uart_init(void) {
 }
 
 int8_t uart_putc(uint8_t c) {
-	queue_t *handler = GetTxHandler();
 	int8_t ret;
+
 	// Disable RX for RS-485 (halfduplex)
 	UART1->CR2 &= ~(UART1_CR2_REN);
-
-	ret = add_queue(handler, c);
+    ret = add_queue(&tx_queue, c);
 
 	// Enable TX
 	UART1->CR2 |= UART1_CR2_TIEN | UART1_CR2_TCIEN;
@@ -47,6 +37,39 @@ void uart_puts(uint8_t *str) {
 }
 
 int8_t uart_recv(uint8_t *data) {
-	queue_t *handler = GetRxHandler();
-	return get_queue(handler, data);
+    return get_queue(&rx_queue, data);
+}
+
+
+// ---------------------
+//  Interrupt functions
+// ---------------------
+
+void uart1_tx(void) __interrupt (IT_UART1_TX) {
+    uint8_t sr_reg = UART1->SR;
+    uint8_t data;
+
+    if( !get_queue(&tx_queue, &data) ) {
+        if ( sr_reg & UART1_SR_TXE ) {
+        // Rejester TX  pusty
+            UART1->DR = data;
+        }
+    } else {
+        // Enable RX for RS-485 (halfduplex)
+        UART1->CR2 |= UART1_CR2_REN;
+        // Disable TX
+        UART1->CR2 &= ~(UART1_CR2_TIEN | UART1_CR2_TCIEN);
+    }
+
+    if ( sr_reg & UART1_SR_TC ) {
+        // Transsmition complete
+        UART1->SR &= ~(UART1_SR_TC);
+    }
+}
+
+
+void uart1_rx(void) __interrupt (IT_UART1_RX) {
+    if ( UART1->SR & UART1_SR_RXNE ) {
+        add_queue(&rx_queue, UART1->DR);
+    }
 }
