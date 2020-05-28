@@ -17,12 +17,12 @@ typedef struct {
 	volatile  uint8_t status;
 	uint8_t pipe_no;
 	uint8_t data_rx[PAYLOADSIZE];
-	uint8_t len;
 	nrf_cb_f func;	
 } nrf_t;
 
 
 nrf_t *GetNrfHandler(void);
+
 void nrf_power(uint8_t power);
 void nrf_init_hw(void);
 void nrf_init_sw(void);

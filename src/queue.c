@@ -1,5 +1,15 @@
-#include "stm8s.h"
+#ifdef __SDCC__
+  #include "stm8s.h"
+#else
+  #include <inttypes.h>
+#endif
+
 #include "queue.h"
+
+void init_queue(queue_t *q) {
+    q->cnt = 0;
+    q->idx = 0;
+}
 
 int8_t add_queue(queue_t *q, uint8_t value) {
     if (q->cnt < Q_SIZE ) {

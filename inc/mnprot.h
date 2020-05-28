@@ -3,8 +3,8 @@
 
 #define MN_ADDR		3
 
-#define CMP_BUFF_SIZE	4U
-#define RET_BUFF_SIZE	4U
+#define CMP_BUFF_SIZE	4
+#define RET_BUFF_SIZE	4
 
 /* Frame structure */
 /* | Addr. dest (8 bit) | Addr. src. (8 bit) | ACK (1 bit) | TTL (7 bit) | FRAME ID (8 bit) | PAYLOAD (max. 28 bajt) |*/

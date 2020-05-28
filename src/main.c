@@ -9,7 +9,7 @@
 #include "spi.h"
 #include "mnprot.h"
 
-uint8_t pload[4] = {'C', 'C', 'C', 'C'};
+//uint8_t pload[4] = {'C', 'C', 'C', 'C'};
 
 int main(void) {
 
@@ -32,7 +32,7 @@ int main(void) {
     const uint8_t hello[] = {"STM8\n"};
     uart_puts(hello);
 
-    while( 1 ) {
+    while(1) {
         uart_event();
         sys_event();
         nrf_event();

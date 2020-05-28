@@ -6,13 +6,15 @@
 #include "uart.h"
 #include "spi.h"
 
+// Static global
+static nrf_t nrf;
 
+// Return Handler static global
 nrf_t *GetNrfHandler(void) {
-    static nrf_t nrf;
     return &nrf;
 }
 
-
+// Init hardware
 void nrf_init_hw(void) {
 	// GPIO
 	GPIOA->DDR |= SPI_CE | SPI_CSN;
@@ -26,7 +28,7 @@ void nrf_init_hw(void) {
 	EXTI->CR1 |= 0x20; // PORTC faling edge
 }
 
-
+// Power on/off NRF24L01 module
 void nrf_power(uint8_t power) {
 	if (power) {
 		output_set(R_NRF, 0);
@@ -37,7 +39,7 @@ void nrf_power(uint8_t power) {
 	}
 }
 
-
+// Software init for module
 void nrf_init_sw(void) {
 	uint8_t addr[5] = {0xA5, 0xE7, 0xE7, 0xE7, 0xA7};
 
@@ -130,44 +132,42 @@ void nrf_write_tx(uint8_t *data, uint8_t len) {
 
 
 void nrf_register_cb(nrf_cb_f func) {
-    nrf_t *nrf = GetNrfHandler();
-	nrf->func = func;
+	nrf.func = func;
 }
 
 
 void nrf_event(void) {
-    sys_t *sys = GetSysHeader();
-    nrf_t *nrf = GetNrfHandler();
+    sys_t *sys = GetSysHandler();
 	uint8_t nstatus;
-	nrf->status = nstatus = 0;
+	nrf.status = nstatus = 0;
 
 	if( sys->flags & (1<<N_IRQ) ) {
 		// NRF24L01 interrupt notify
-		nrf->status = nrf_readreg( STATUS );
-		nrf->pipe_no = (nrf->status >> 1) & 0x07;
+		nrf.status = nrf_readreg( STATUS );
+		nrf.pipe_no = (nrf.status >> 1) & 0x07;
 
-		if( (nrf->status & RX_DR) ) {
+		if( (nrf.status & RX_DR) ) {
 			// data receive
 			nstatus |= RX_DR;
-			nrf_read_rx(nrf->data_rx, PAYLOADSIZE);
+			nrf_read_rx(nrf.data_rx, PAYLOADSIZE);
 		}
 
-		if( (nrf->status & TX_DS) ) {
+		if( (nrf.status & TX_DS) ) {
 			// data send
 			nstatus |= TX_DS;
 		}
 
-		if( (nrf->status & MAX_RT) ) {
+		if( (nrf.status & MAX_RT) ) {
 			// max. retry reached
 			nstatus |= MAX_RT;
 		}
 
-		if( (nrf->status & TX_FULL) ) {
+		if( (nrf.status & TX_FULL) ) {
 			// tx buffor full
 		}
 
-		if( nrf->func ) {
-			nrf->func();
+		if( nrf.func ) {
+			nrf.func();
 		}
 
 		nrf_writereg( STATUS, nstatus );
@@ -177,9 +177,8 @@ void nrf_event(void) {
 
 
 void nrf_clear_rxbuff(void) {
-    nrf_t *nrf = GetNrfHandler();
 	for(uint8_t x=0; x<PAYLOADSIZE; x++) {
-		nrf->data_rx[x] = 0;
+		nrf.data_rx[x] = 0;
 	}
 }
 

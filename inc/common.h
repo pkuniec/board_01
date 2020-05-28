@@ -35,7 +35,7 @@ typedef struct {
 } sys_t;
 
 
-sys_t *GetSysHeader(void);
+sys_t *GetSysHandler(void);
 
 void setup(void);
 void delay(uint16_t time);

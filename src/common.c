@@ -8,7 +8,7 @@
 
 
 // Get SYS variable Handler
-sys_t *GetSysHeader(void) {
+sys_t *GetSysHandler(void) {
     static sys_t sys;
     return &sys;
 }
@@ -78,9 +78,9 @@ void uart_event(void) {
 
 // System event check
 void sys_event(void) {
-    sys_t *sys = GetSysHeader();
+    sys_t *sys = GetSysHandler();
 	if ( sys->flags ) {
-		// Flags from external IRQ
+		// Flags from External IRQ
 		if ( sys->flags & (1<<E_IRQ) ) {
 			ClrBit(sys->flags, E_IRQ);
 			uart_putc('E');
@@ -88,15 +88,16 @@ void sys_event(void) {
 	}
 }
 
-
+/*
 // Reada one byte from EEPROM
 // addr: address of EEPROM memory to read
 uint8_t eeprom_read(uint8_t addr) {
 	uint8_t *eemem = (char *) 0x4000;
 	return *(eemem + addr);
 }
+*/
 
-
+/*
 // Write data tu EEPROM
 // addr: address memory to start save data
 // *data: poiter to data with will be save
@@ -118,8 +119,9 @@ void eeprom_write(uint8_t addr, uint8_t *data, uint8_t len) {
 
 	FLASH->IAPSR &= ~FLASH_IAPSR_DUL; 
 }
+*/
 
-
+/*
 // Get ADC value
 // *adc: pointer to word (uint16_t) wher by stored ADC value
 void adc_get(uint16_t *adc) {
@@ -135,7 +137,7 @@ void adc_get(uint16_t *adc) {
 	// Sleep ADC
 	ClrBit(ADC1->CR1, 0);
 }
-
+*/
 
 // Transmit bit to shift register
 // data: byte to transmit
@@ -184,7 +186,8 @@ void mn_exec(void) {
 	for (uint8_t x=4; x<8; x++) {
 		uart_putc(nrf->data_rx[x]);
 	}
-    uart_putc(' ');
+    uart_putc('\n');
+    uart_putc('\r');
 
 	// if ( nrf->data_rx[4] == 'C' ) {
 	// 	output_set(3 ,1);

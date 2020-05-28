@@ -5,6 +5,7 @@
 #include "nrf24l01_mem.h"
 #include "mnprot.h"
 
+// Static global
 static mn_frame_t mn_frame;
 
 
@@ -70,7 +71,7 @@ void mn_decode_frame(void) {
 		}
 
 		// Clean RX flag
-		nrf->status &= ~RX_DR;
+		//nrf->status &= ~RX_DR;
 	}
 }
 
@@ -89,24 +90,24 @@ void mn_execute(void) {
 		}
 	}
 
-	if( e ) {
-		// save execute frame info in frame buff
-		mn_frame.cframe_idx = (++mn_frame.cframe_idx & (CMP_BUFF_SIZE-1) );
-		mn_frame.cmpframe[0][mn_frame.cframe_idx] = nrf->data_rx[SRC_ADDR]; // source addr.
-		mn_frame.cmpframe[1][mn_frame.cframe_idx] = nrf->data_rx[FRAME_ID]; // frame ID
+    if( e ) {
+        // save execute frame info in frame buff
+        mn_frame.cframe_idx = (++mn_frame.cframe_idx & (CMP_BUFF_SIZE-1) );
+        mn_frame.cmpframe[0][mn_frame.cframe_idx] = nrf->data_rx[SRC_ADDR]; // source addr.
+        mn_frame.cmpframe[1][mn_frame.cframe_idx] = nrf->data_rx[FRAME_ID]; // frame ID
 
-		// execute
-		if ( mn_frame.execute ) {
-			mn_frame.execute();
-		}
+        // execute
+        if ( mn_frame.execute ) {
+            mn_frame.execute();
+        }
 
-		// if ACK
+		/* If set ACK */
 		// if( nrf->data_rx[ACK_TTL] & 0x80 ) {
-		// 	e = 0xff;
-		// 	nrf_tx_enable();
-		// 	mn_send( nrf->data_rx[DST_ADDR], 5, &e, 0);
-		// 	delay(500);
-		// 	nrf_rx_enable();
+        //     e = 0xff;
+        //     nrf_tx_enable();
+        //     delay(500);
+        //     mn_send( nrf->data_rx[DST_ADDR], 5, &e, 0);
+        //     nrf_rx_enable();
 		// }
 	}
 }
@@ -138,6 +139,7 @@ void mn_retransmit(void) {
 			mn_frame.retframe[1][mn_frame.rframe_idx] = nrf->data_rx[SRC_ADDR];
 			mn_frame.retframe[2][mn_frame.rframe_idx] = nrf->data_rx[FRAME_ID];
 			nrf_sendcmd( W_TX_PAYLOAD_NOACK );
+            // Pararandom delay send time
 			delay(55*MN_ADDR);
 			nrf_write_tx(nrf->data_rx, PAYLOADSIZE);
 			nrf_rx_enable();

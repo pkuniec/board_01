@@ -29,9 +29,9 @@ endif
 INCLUDE_DIR = -I$(SRC_DIR) -I$(INC_DIR) -I$(BASE_HEADERS)
 
 LDFLAGS = -mstm8 -lstm8
-CFLAGS_O = --opt-code-size --all-callee-saves --stack-auto --fverbose-asm --no-peep
+CFLAGS_O = --opt-code-size --std-sdcc11 --all-callee-saves --stack-auto --fverbose-asm --no-peep --max-allocs-per-node 10000
 
-CFLAGS = --Werror --std-sdcc99 -mstm8 --verbose --stack-auto --fverbose-asm --no-peep $(DEFINES)
+CFLAGS = --Werror --std-sdcc11 -mstm8 --verbose --stack-auto --fverbose-asm --no-peep --max-allocs-per-node 10000 $(DEFINES)
 
 ifeq ($(DEBUG), 1)
 	CFLAGS += --out-fmt-elf --debug
