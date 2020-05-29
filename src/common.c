@@ -1,4 +1,11 @@
-#include "stm8s.h"
+#ifdef __SDCC__
+  #include "stm8s.h"
+#else
+  #include <inttypes.h>
+  #include "stm8s_sim_def.h"
+  #include "stm8s_sim.h"
+#endif
+
 #include "common.h"
 #include "uart.h"
 #include "spi.h"
@@ -29,7 +36,6 @@ void setup(void) {
 	ADC1->CSR = 0x03; // Channel 3;
 	ADC1->CR1 = 0x70; // f.master/18
 	ADC1->TDRL = 0x03;
-
 
 	ClrBit(GPIOA->ODR, LATCH);
 

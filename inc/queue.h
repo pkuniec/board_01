@@ -12,6 +12,6 @@ typedef struct {
 void init_queue(queue_t *q);
 int8_t add_queue(queue_t *q, uint8_t value);
 int8_t get_queue(queue_t *q, uint8_t *value);
-uint8_t size_queue(queue_t *q);
+//uint8_t size_queue(queue_t *q);
 
 #endif

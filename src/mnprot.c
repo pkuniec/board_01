@@ -1,5 +1,12 @@
+#ifdef __SDCC__
+  #include "stm8s.h"
+#else
+  #include <inttypes.h>
+  #include "stm8s_sim_def.h"
+  #include "stm8s_sim.h"
+#endif
+
 #include <stdlib.h>
-#include "stm8s.h"
 #include "common.h"
 #include "nrf24l01.h"
 #include "nrf24l01_mem.h"
