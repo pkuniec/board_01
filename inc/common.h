@@ -41,6 +41,7 @@ void setup(void);
 void delay(uint16_t time);
 void uart_event(void);
 void sys_event(void);
+void timer_event(void);
 
 void reg_transfer(uint8_t data);
 

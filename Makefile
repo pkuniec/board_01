@@ -33,11 +33,11 @@ CFLAGS_O = --opt-code-size --std-sdcc11 --all-callee-saves --stack-auto --fverbo
 
 CFLAGS = --Werror --std-sdcc11 -mstm8 --verbose --stack-auto --fverbose-asm --no-peep --max-allocs-per-node 10000 $(DEFINES)
 
-ifeq ($(DEBUG), 1)
-	CFLAGS += --out-fmt-elf --debug
-else
-	CFLAGS += --out-fmt-ihx
-endif
+#ifeq ($(DEBUG), 1)
+#	CFLAGS += --out-fmt-elf --debug
+#else
+#	CFLAGS += --out-fmt-ihx
+#endif
 
 
 %.rel: %.c $(HEADERS)
@@ -52,24 +52,31 @@ $(PROGRAM).elf: $(OBJECTS)
 	$(CC) $(LDFLAGS) --out-fmt-elf --debug  $(subst $(SRC_DIR),$(TMP_DIR), $^) -o $(OUT_DIR)/$@
 
 clean:
-	@echo "--- Czyszczenie katalogow: bin, tmp ---"
+	@echo "--- Clena directory: bin, tmp ---"
 	rm -f $(OUT_DIR)/*
 	rm -f $(TMP_DIR)/*
 
 size:
 	@$(OBJCOPY) -I ihex --output-target=binary $(OUT_DIR)/$(PROGRAM).ihx $(OUT_DIR)/$(PROGRAM).bin
-	@echo "--- Rozmiar binarki ---"
+	@echo "--- Binary size ---"
 	@stat -L -c %s $(OUT_DIR)/$(PROGRAM).bin
 
-flash: $(PROGRAM).ihx
-	stm8flash -c $(PROGRAMMER) -p $(DEVICE) -w $(OUT_DIR)/$(PROGRAM).ihx
+flash:
+	@echo "--- Flashing ---"
+	@test -f $(OUT_DIR)/$(PROGRAM).ihx && stm8flash -c $(PROGRAMMER) -p $(DEVICE) -w $(OUT_DIR)/$(PROGRAM).ihx || echo "No file to flash!"
 
-debug: $(PROGRAM).elf
+all: CFLAGS += --out-fmt-ihx
+all: $(PROGRAM).ihx
+
+debug_out: CFLAGS += --out-fmt-elf --debug
+debug_out: $(PROGRAM).elf
+
+debug: debug_out
 
 gdb:
-	@echo "--- Uruchomienie debugera (DBG) ---"
+	@echo "--- Runing sebuger session (DBG) ---"
 	stm8-gdb --tui $(OUT_DIR)/$(PROGRAM).elf --directory=./$(SRC_DIR)
 
 openocd:
-	@echo " --- Uruchomienie OpenOCD ----"
+	@echo " --- Runing OpenOCD ----"
 	openocd -f interface/stlink.cfg -f target/stm8s003.cfg -c "init" -c "reset halt"

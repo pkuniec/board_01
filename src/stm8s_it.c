@@ -5,15 +5,22 @@
 #include "uart.h"
 
 static uint8_t msec = 100;
+static uint8_t irq_flags;
+
+uint8_t *GetFlagHandler(void) {
+    return &irq_flags;
+}
 
 // TIM4 ISR
 void tim4_update(void) __interrupt (IT_TIM4_OVR_UIF) {
-    
     TIM4->SR1 &= ~TIM4_SR1_UIF;
 
     if ( !msec-- ) {
         msec = 100;
+        SetBit(irq_flags, 1);
     }
+
+    SetBit(irq_flags, 0);
 }
 
 

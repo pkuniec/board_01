@@ -8,6 +8,7 @@
 #include "uart.h"
 #include "spi.h"
 #include "mnprot.h"
+#include "modbus.h"
 
 //uint8_t pload[4] = {'C', 'C', 'C', 'C'};
 
@@ -27,6 +28,15 @@ int main(void) {
     nrf_rx_enable();
     //nrf_tx_enable();
 
+    // Modbus
+    modbusInit();
+    modbusReset();
+    modbusSetAddres(0x02);
+
+    mbRegisterFunc(0x05, modbusFunc05);
+    mbRegisterFunc(0x03, modbusFunc03);
+    mbRegisterFunc(0x06, modbusFunc06);
+
     rim();
 
     const uint8_t hello[] = {"STM8\n"};
@@ -36,6 +46,8 @@ int main(void) {
         uart_event();
         sys_event();
         nrf_event();
+        timer_event();
+        modbus_event();
         // delay(65000);
         // delay(65000);
         // delay(65000);

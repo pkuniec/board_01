@@ -7,11 +7,13 @@
 #endif
 
 #include "common.h"
+#include "stm8s_it.h"
 #include "uart.h"
 #include "spi.h"
 #include "nrf24l01.h"
 #include "nrf24l01_mem.h"
 #include "mnprot.h"
+#include "modbus.h"
 
 
 // Get SYS variable Handler
@@ -54,8 +56,9 @@ void setup(void) {
 	//TIM2->CR1 = TIM2_CR1_CEN;
 
 	// Tim4 - time counter
-	TIM4->PSCR = TIM4_PSCR_PSC; // pre. 128
-	TIM4->ARR = 99;
+    // IRQ - 100us
+	TIM4->PSCR = 0x02; // pre. 4x
+	TIM4->ARR = 49;
 	TIM4->IER |= TIM4_IER_UIE;
 	TIM4->CR1 |= TIM4_CR1_CEN;
 }
@@ -75,9 +78,10 @@ void uart_event(void) {
 
 	if( !uart_recv( &data ) ) {
 		// odebrano znak
-		if ( data == 'a' ) {
-			uart_putc('0');
-		}
+		// if ( data == 'a' ) {
+		// 	uart_putc('0');
+		// }
+        modbus_putdata(data);
 	}
 }
 
@@ -92,6 +96,17 @@ void sys_event(void) {
 			uart_putc('E');
 		}
 	}
+}
+
+
+// Timer event
+void timer_event(void) {
+    uint8_t *flags = GetFlagHandler();
+
+    if ( (*flags) && 0x01 ) {
+        ClrBit(*flags, 0);
+        modbusTickTimer();
+    }
 }
 
 /*
@@ -189,11 +204,11 @@ void nrf_recv(void) {
 void mn_exec(void) {
     nrf_t *nrf = GetNrfHandler();
 	// Debug only
-	for (uint8_t x=4; x<8; x++) {
-		uart_putc(nrf->data_rx[x]);
-	}
-    uart_putc('\n');
-    uart_putc('\r');
+	// for (uint8_t x=4; x<8; x++) {
+	// 	uart_putc(nrf->data_rx[x]);
+	// }
+    // uart_putc('\n');
+    // uart_putc('\r');
 
 	// if ( nrf->data_rx[4] == 'C' ) {
 	// 	output_set(3 ,1);
