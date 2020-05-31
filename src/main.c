@@ -31,7 +31,7 @@ int main(void) {
     // Modbus
     modbusInit();
     modbusReset();
-    modbusSetAddres(0x02);
+    modbusSetAddres(0x01);
 
     mbRegisterFunc(0x05, modbusFunc05);
     mbRegisterFunc(0x03, modbusFunc03);
@@ -39,8 +39,8 @@ int main(void) {
 
     rim();
 
-    const uint8_t hello[] = {"STM8\n"};
-    uart_puts(hello);
+    //const uint8_t hello[] = {"STM8\n\r"};
+    //uart_puts(hello);
 
     while(1) {
         uart_event();

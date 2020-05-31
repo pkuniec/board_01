@@ -18,7 +18,7 @@
 #define mbT15	15
 #define mbT35	35
 
-#define buff_size   8
+#define buff_size   12
 #define mbFuncCount	3
 
 typedef struct {

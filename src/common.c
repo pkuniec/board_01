@@ -164,13 +164,22 @@ void adc_get(uint16_t *adc) {
 // data: byte to transmit
 void reg_transfer(uint8_t data) {
 	spi_transmit(data);
-	SetBit(GPIOA->ODR, LATCH);
+	//SetBit(GPIOA->ODR, LATCH);
+    // Set bit 1 (LATCH) in GPIOA-ODR
+    __asm__("bset 0x5000, #1");
 	delay(10);
-	ClrBit(GPIOA->ODR, LATCH);
+	//ClrBit(GPIOA->ODR, LATCH);
+    // Clear bit 1 (LATCH) in GPIOA-ODR
+    __asm__("bres 0x5000, #1");
 }
 
 
 // Usage Functions
+
+uint8_t *GetRegHandler(void) {
+    static uint8_t reg_data;
+    return &reg_data;
+}
 
 // Set output
 // num: number output
@@ -178,15 +187,15 @@ void reg_transfer(uint8_t data) {
 //		 4: Relay 2,  5: Out 1, 6: Out 2, 7: Out 3)
 //  mode: output mode (0: off, 1: on)
 void output_set(uint8_t num, uint8_t mode) {
-	static uint8_t reg_data;
+	uint8_t *reg = GetRegHandler();
 
 	if ( mode ) {
-		SetBit(reg_data, num);
+		SetBit(*reg, num);
 	} else {
-		ClrBit(reg_data, num);
+		ClrBit(*reg, num);
 	}
 
-	reg_transfer(reg_data);
+	reg_transfer(*reg);
 }
 
 

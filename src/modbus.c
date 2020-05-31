@@ -35,11 +35,12 @@ void modbusInit(void) {
 	}
 }
 
+
 void modbusSetAddres(uint8_t addr) {
 	modbus.Addres = addr;
 }
 
-
+// Put reciverd data to modbus buffer
 int8_t modbus_putdata(uint8_t data) {
 
     modbus.BusState |= mbReceiving;
@@ -53,7 +54,7 @@ int8_t modbus_putdata(uint8_t data) {
     }
 }
 
-
+// Calculating CRC sum
 uint16_t crc16_update(uint16_t crc, uint8_t a) {
 	crc ^= (uint16_t)a;
 	for (uint8_t i = 0; i < 8; ++i) {
@@ -66,7 +67,7 @@ uint16_t crc16_update(uint16_t crc, uint8_t a) {
 	return crc;
 }
 
-
+// Calculating CRC for frame
 uint16_t modbusCRC(uint8_t len) {
 	uint16_t crc = 0xFFFF;
 
@@ -114,7 +115,8 @@ void modbusTickTimer(void) {
 
 void modbus_event(void) {
 	uint16_t crc;
-	uint8_t error = 0;
+    uint8_t func_num = mbFuncCount;
+	uint8_t error = 1;
 
 	// Parsing rcived data frame
 	if ( modbus.BusState & mbParseFrame ) {
@@ -139,17 +141,16 @@ void modbus_event(void) {
 		}
 
 		// Frame OK
-		// crc - value do counting down from numbers of registered functions
-		crc = mbFuncCount;
-		while( crc-- ) {
-			if ( modbus.funcs[crc].func_num == modbus.buff[1] ) {
-				modbus.funcs[crc].func_name();
-				error = 1;
+		// func_num - value to counting down from numbers of registered functions
+		while( func_num-- ) {
+			if ( modbus.funcs[func_num].func_num == modbus.buff[1] ) {
+				modbus.funcs[func_num].func_name();
+				error = 0;
 				break;
 			}
 		}
 
-		if ( !error ) {
+		if ( error ) {
 			modbusSendException( mbIllegalFunction );
 		}
 
@@ -158,9 +159,7 @@ void modbus_event(void) {
 
 	// Sending rensponse
 	if ( modbus.BusState & mbSendRequest ) {
-		for(uint8_t i=0; i<modbus.idx; i++) {
-            uart_putc(modbus.buff[i]);
-        }
+        uart_cp2txbuf((uint8_t *)modbus.buff, modbus.idx);
         modbus.idx = 0;
         modbus.BusState &= ~mbSendRequest;
 	}
@@ -207,69 +206,65 @@ int8_t mbUnregisterFunc(uint8_t num) {
 
 
 // Function 0x05 - Write Single Coil
-// Coil 0 - LED-s ON/OFF
-// Coli 1 - motor ON/OFF
-// Coli 2 - software reset
+// Coil0: REL1, Coil1: Rel2, Coil3: AC1, Coil4: AC2
 void modbusFunc05(void) {
 	uint8_t coil = modbus.buff[3];
 
-	if (coil > 2 ) {
+	if (coil > 8 ) {
 		modbusSendException( mbIllegal_data_addr );
 	}
-	
-	if ( !coil ) {
-		if ( modbus.buff[4] == 0xFF ) {
-            output_set(3, 1);
-        } else {
-            output_set(3, 0);
-        }
-	}
 
-	if ( coil == 1 ) {
-        if ( modbus.buff[4] == 0xFF ) {
-            output_set(4, 1);
-        } else {
-            output_set(4, 0);
-        }
-	}
+    if ( 0xFF == modbus.buff[4] ) {
+        output_set(coil, 1);
+    } else {
+        output_set(coil, 0);
+    }
 
-	if ( coil == 2 && modbus.buff[4] == 0xFF ) {
-		// software reset
-		WWDG->CR = 0xFF;
-	}
+	// software reset
+	//WWDG->CR = 0xFF;
 
 	modbusResponse();
 }
 
 
 // Function 0x03 - Read Holding Registers
-// Reg 0,1 - Motor time (0 - motor0, 1 - motor1)
 void modbusFunc03(void) {
-	uint8_t reg_num = modbus.buff[3];
-	uint8_t reg_cnt = modbus.buff[5];
-	uint8_t err_l = 0;
-	uint16_t crc = 0;
+    uint8_t reg_num = modbus.buff[3];
+    uint8_t reg_cnt = modbus.buff[5];
+    uint8_t err_l = 0;
+    uint8_t *sysreg = GetRegHandler();
+    uint16_t crc = 0;
 
 	modbus.buff[2] = reg_cnt * 2;
 
-	if ( reg_num > 1 ) {
-		err_l = 1;
-		modbusSendException( mbIllegal_data_addr );
-	}
+    if ( reg_num > 1 ) {
+        err_l = 1;
+        modbusSendException( mbIllegal_data_addr );
+    }
 
-	if ( reg_num + reg_cnt > 2 ) {
-		err_l = 2;
-		modbusSendException( mbIllegal_data_val );
-	}
+    if ( reg_num + reg_cnt > 2 ) {
+        err_l = 2;
+        modbusSendException( mbIllegal_data_val );
+    }
 
-	if ( !err_l ) {
+    if ( !err_l ) {
+        err_l = 3; // index in buffer to starting write data
+        while(reg_cnt--) {
+            modbus.buff[err_l++] = 0;
+            modbus.buff[err_l++] = *sysreg;
+        }
+
+        crc = modbusCRC( err_l );
+        modbus.buff[err_l++] = (uint8_t)(crc & 0xFF);
+        modbus.buff[err_l++] = (uint8_t)(crc >> 8);
+        modbus.idx = err_l++;
+
 		modbusResponse();
 	}
 }
 
 
 // Func 0x06 - Write Single Register
-// Reg 0 - Write time for motor0 (0x??XX) and motor1 (0xXX??)
 void modbusFunc06(void) {
 	uint8_t reg_num = modbus.buff[3];
 	uint8_t reg0_val = modbus.buff[4];

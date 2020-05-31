@@ -21,19 +21,38 @@ void uart_init(void) {
     UART1->CR2 = UART1_CR2_TEN | UART1_CR2_REN | UART1_CR2_RIEN;
 }
 
+
+void uart_cp2txbuf(const uint8_t *buff, uint8_t len) {
+    while(len--) {
+        if ( add_queue(&tx_queue, *buff++) ) {
+            // TX buff full - enable interrupt and waite for empty space
+            __asm__("bres 0x5235, #2"); // Clear REN bit in CR2 reg.
+            __asm__("bset 0x5235, #7"); // Set TIEN bit in CR2 reg.
+            while( !(UART1->SR & UART1_SR_TXE) );
+        }
+    }
+    // Enable TX interrupt
+    //UART1->CR2 &= ~(UART1_CR2_REN);
+    //UART1->CR2 |= UART1_CR2_TIEN;
+    __asm__("bres 0x5235, #2"); // Clear REN bit in CR2 reg.
+    __asm__("bset 0x5235, #7"); // Set TIEN bit in CR2 reg.
+}
+
+
 int8_t uart_putc(uint8_t c) {
     // Disable RX for RS-485 (halfduplex)
     UART1->CR2 &= ~(UART1_CR2_REN);
     if ( !add_queue(&tx_queue, c) ) {
         // Enable TX
-        UART1->CR2 |= UART1_CR2_TIEN;
+        //SetBit(UART1->CR2, 7); // Set TIEN bit in CR2 reg.
+        __asm__("bset 0x5235, #7"); // Set TIEN bit in CR2 reg.
         return 0;
     } else {
         return -1;
     }
 }
 
-void uart_puts(uint8_t *str) {
+void uart_puts(const uint8_t *str) {
     while( *str ) {
         if( !uart_putc( *str ) ) {
             *(str++);
@@ -64,9 +83,11 @@ void uart1_tx(void)
 			UART1->DR = data;
 		} else {
             // Enable RX for RS-485 (halfduplex)
-            UART1->CR2 |= UART1_CR2_REN; 
+            //UART1->CR2 |= UART1_CR2_REN;
+            __asm__("bset 0x5235, #2"); // Set REN bit in CR2 reg.
             // Disable TX
-            UART1->CR2 &= ~(UART1_CR2_TIEN);
+            //UART1->CR2 &= ~(UART1_CR2_TIEN);
+            __asm__("bres 0x5235, #7"); // Clear TIEN bit in CR2 reg.
         }
 	}
 }

@@ -43,6 +43,7 @@ void uart_event(void);
 void sys_event(void);
 void timer_event(void);
 
+uint8_t *GetRegHandler(void);
 void reg_transfer(uint8_t data);
 
 uint8_t eeprom_read(uint8_t addr);
