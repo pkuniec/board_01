@@ -55,8 +55,11 @@ void mn_send(uint8_t dest, uint8_t ttl, uint8_t *data, uint8_t ack) {
 		frame[i] = *data++;
 	}
 
+	nrf_tx_enable();
 	nrf_sendcmd( W_TX_PAYLOAD_NOACK );
 	nrf_write_tx(frame, PAYLOADSIZE);
+
+	nrf_rx_enable();
 }
 
 
@@ -65,20 +68,17 @@ void mn_decode_frame(void) {
     nrf_t *nrf = GetNrfHandler();
 
 	if( (nrf->status & RX_DR) ) {
-		if( nrf->data_rx[0] == MN_ADDR ) {
+		if( nrf->data_rx[DST_ADDR] == MN_ADDR ) {
 			// execute
 			mn_execute();
-		} else 	if (nrf->data_rx[0] == 255 && nrf->data_rx[1] != MN_ADDR) {
+		} else 	if (nrf->data_rx[DST_ADDR] == 255 && nrf->data_rx[SRC_ADDR] != MN_ADDR) {
 			// retransmit + execute
 			mn_retransmit();
 			mn_execute();
-		} else if ( nrf->data_rx[1] != MN_ADDR ) {
+		} else if ( nrf->data_rx[SRC_ADDR] != MN_ADDR ) {
 			// retransmit
 			mn_retransmit();
 		}
-
-		// Clean RX flag
-		//nrf->status &= ~RX_DR;
 	}
 }
 
@@ -98,12 +98,12 @@ void mn_execute(void) {
 	}
 
     if( e ) {
-        // save execute frame info in frame buff
+        // Save execute frame info in frame buff
         mn_frame.cframe_idx = (++mn_frame.cframe_idx & (CMP_BUFF_SIZE-1) );
         mn_frame.cmpframe[0][mn_frame.cframe_idx] = nrf->data_rx[SRC_ADDR]; // source addr.
         mn_frame.cmpframe[1][mn_frame.cframe_idx] = nrf->data_rx[FRAME_ID]; // frame ID
 
-        // execute
+        // Execute
         if ( mn_frame.execute ) {
             mn_frame.execute();
         }
@@ -127,11 +127,11 @@ void mn_retransmit(void) {
 	uint8_t x = (nrf->data_rx[ACK_TTL] & 0x7F);	 // x = TTL
 	uint8_t send = 1;
 
-	// decrement TTL
+	// Decrement TTL
 	if( --x ) {
 		nrf->data_rx[2] = x | ack;
 
-		// check if frame was retransmit
+		// Check if frame was retransmit
 		for(x=0; x<RET_BUFF_SIZE; x++) {
 			if( (mn_frame.retframe[0][x] == nrf->data_rx[DST_ADDR]) && (mn_frame.retframe[1][x] == nrf->data_rx[SRC_ADDR]) && (mn_frame.retframe[2][x] == nrf->data_rx[FRAME_ID]) ) {
 				send = 0;

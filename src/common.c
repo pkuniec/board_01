@@ -1,11 +1,4 @@
-#ifdef __SDCC__
-  #include "stm8s.h"
-#else
-  #include <inttypes.h>
-  #include "stm8s_sim_def.h"
-  #include "stm8s_sim.h"
-#endif
-
+#include "stm8s.h"
 #include "common.h"
 #include "stm8s_it.h"
 #include "uart.h"
@@ -14,12 +7,18 @@
 #include "nrf24l01_mem.h"
 #include "mnprot.h"
 #include "modbus.h"
-
+#include "timer.h"
 
 // Get SYS variable Handler
 sys_t *GetSysHandler(void) {
     static sys_t sys;
     return &sys;
+}
+
+// Shift register handler
+uint8_t *GetRegHandler(void) {
+    static uint8_t reg_data;
+    return &reg_data;
 }
 
 
@@ -61,6 +60,11 @@ void setup(void) {
 	TIM4->ARR = 49;
 	TIM4->IER |= TIM4_IER_UIE;
 	TIM4->CR1 |= TIM4_CR1_CEN;
+
+    // Init aditional functions
+    // Software timer
+    os_timer_init(0, 1, 1);
+    os_timer_setfn(0, sys_timer_func, (void *)2);
 }
 
 // Simple block delay function
@@ -78,9 +82,6 @@ void uart_event(void) {
 
 	if( !uart_recv( &data ) ) {
 		// odebrano znak
-		// if ( data == 'a' ) {
-		// 	uart_putc('0');
-		// }
         modbus_putdata(data);
 	}
 }
@@ -93,7 +94,7 @@ void sys_event(void) {
 		// Flags from External IRQ
 		if ( sys->flags & (1<<E_IRQ) ) {
 			ClrBit(sys->flags, E_IRQ);
-			uart_putc('E');
+			//uart_putc('E');
 		}
 	}
 }
@@ -101,85 +102,45 @@ void sys_event(void) {
 
 // Timer event
 void timer_event(void) {
-    uint8_t *flags = GetFlagHandler();
+    uint8_t *flags = GetTimeHandler();
 
-    if ( (*flags) && 0x01 ) {
+    if ( (*flags) & 0x01 ) {
         ClrBit(*flags, 0);
         modbusTickTimer();
     }
+
+    if ( (*flags) & 0x04 ) {
+        ClrBit(*flags, 2);
+        os_timer_event();
+    }
 }
 
-/*
-// Reada one byte from EEPROM
-// addr: address of EEPROM memory to read
-uint8_t eeprom_read(uint8_t addr) {
-	uint8_t *eemem = (char *) 0x4000;
-	return *(eemem + addr);
+// System timer function
+void sys_timer_func(void *arg) {
+    //const uint8_t hello[] = {"12345"};
+    //uart_cp2txbuf(hello, (int8_t)arg);
+    arg = (int8_t *)arg;
+    nop();
 }
-*/
 
-/*
-// Write data tu EEPROM
-// addr: address memory to start save data
-// *data: poiter to data with will be save
-// len: length in bytes to save
-void eeprom_write(uint8_t addr, uint8_t *data, uint8_t len) {
-	uint8_t *eemem = (char *) 0x4000;
-
-	if( !(FLASH->IAPSR & FLASH_IAPSR_DUL) ) {
-	// Write lock
-		FLASH->DUKR = 0xAE;
-		FLASH->DUKR = 0x56;
-		while ( !(FLASH->IAPSR & FLASH_IAPSR_DUL) );
-	}
-
-	for( uint8_t i = 0; i<len; i++) {
-		*(eemem + addr + i) = data[i];
-		while ( !(FLASH->IAPSR & FLASH_IAPSR_EOP) );
-	}
-
-	FLASH->IAPSR &= ~FLASH_IAPSR_DUL; 
-}
-*/
-
-/*
-// Get ADC value
-// *adc: pointer to word (uint16_t) wher by stored ADC value
-void adc_get(uint16_t *adc) {
-	// wake up ADC
-	SetBit(ADC1->CR1, 0);
-	delay(100);
-	// Start conversion
-	SetBit(ADC1->CR1, 0);
-	while(ADC1->CSR & ADC1_CSR_EOC)
-	ClrBit(ADC1->CSR, 7);
-	*adc = (uint16_t)(ADC1->DRH << 8);
-	*adc |= (uint8_t)(ADC1->DRL);
-	// Sleep ADC
-	ClrBit(ADC1->CR1, 0);
-}
-*/
 
 // Transmit bit to shift register
 // data: byte to transmit
 void reg_transfer(uint8_t data) {
 	spi_transmit(data);
-	//SetBit(GPIOA->ODR, LATCH);
+	
     // Set bit 1 (LATCH) in GPIOA-ODR
+    //SetBit(GPIOA->ODR, LATCH);
     __asm__("bset 0x5000, #1");
 	delay(10);
-	//ClrBit(GPIOA->ODR, LATCH);
+	
     // Clear bit 1 (LATCH) in GPIOA-ODR
+    //ClrBit(GPIOA->ODR, LATCH);
     __asm__("bres 0x5000, #1");
 }
 
 
 // Usage Functions
-
-uint8_t *GetRegHandler(void) {
-    static uint8_t reg_data;
-    return &reg_data;
-}
 
 // Set output
 // num: number output
@@ -212,20 +173,20 @@ void nrf_recv(void) {
 // NRF24L01 mesh frame execute
 void mn_exec(void) {
     nrf_t *nrf = GetNrfHandler();
-	// Debug only
-	// for (uint8_t x=4; x<8; x++) {
-	// 	uart_putc(nrf->data_rx[x]);
-	// }
-    // uart_putc('\n');
-    // uart_putc('\r');
+    //Debug only
+    for (uint8_t x=4; x<8; x++) {
+        uart_putc(nrf->data_rx[x]);
+	}
+    uart_putc('\n');
+    uart_putc('\r');
 
-	// if ( nrf->data_rx[4] == 'C' ) {
-	// 	output_set(3 ,1);
-	// }
+    // if ( nrf->data_rx[4] == 'C' ) {
+    // 	output_set(3 ,1);
+    // }
 
-	// if ( nrf->data_rx[4] == 'O' ) {
-	// 	output_set(3, 0);
-	// }
+    // if ( nrf->data_rx[4] == 'O' ) {
+    // 	output_set(3, 0);
+    // }
 
-	nrf_clear_rxbuff();
+    nrf_clear_rxbuff();
 }

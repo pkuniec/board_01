@@ -1,7 +1,7 @@
 #ifndef MNPROT_H
 #define MNPROT_H
 
-#define MN_ADDR		3
+#define MN_ADDR		9
 
 #define CMP_BUFF_SIZE	4
 #define RET_BUFF_SIZE	4

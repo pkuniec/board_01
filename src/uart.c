@@ -1,10 +1,4 @@
-#ifdef __SDCC__
-  #include "stm8s.h"
-#else
-  #include <inttypes.h>
-  #include "stm8s_sim.h"
-#endif
-
+#include "stm8s.h"
 #include "queue.h"
 #include "uart.h"
 
@@ -26,6 +20,8 @@ void uart_cp2txbuf(const uint8_t *buff, uint8_t len) {
     while(len--) {
         if ( add_queue(&tx_queue, *buff++) ) {
             // TX buff full - enable interrupt and waite for empty space
+            //UART1->CR2 &= ~(UART1_CR2_REN);
+            //UART1->CR2 |= UART1_CR2_TIEN;
             __asm__("bres 0x5235, #2"); // Clear REN bit in CR2 reg.
             __asm__("bset 0x5235, #7"); // Set TIEN bit in CR2 reg.
             while( !(UART1->SR & UART1_SR_TXE) );
@@ -44,7 +40,7 @@ int8_t uart_putc(uint8_t c) {
     UART1->CR2 &= ~(UART1_CR2_REN);
     if ( !add_queue(&tx_queue, c) ) {
         // Enable TX
-        //SetBit(UART1->CR2, 7); // Set TIEN bit in CR2 reg.
+        //UART1->CR2 |= UART1_CR2_TIEN;
         __asm__("bset 0x5235, #7"); // Set TIEN bit in CR2 reg.
         return 0;
     } else {

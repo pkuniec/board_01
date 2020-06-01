@@ -1,5 +1,4 @@
 #include "stm8s.h"
-
 #include "common.h"
 #include "uart.h"
 #include "modbus.h"
@@ -202,11 +201,12 @@ int8_t mbUnregisterFunc(uint8_t num) {
 }
 
 
+// -----------------------------
 // Modbus Funcion implrmrntation
-
+// -----------------------------
 
 // Function 0x05 - Write Single Coil
-// Coil0: REL1, Coil1: Rel2, Coil3: AC1, Coil4: AC2
+// Shift register write
 void modbusFunc05(void) {
 	uint8_t coil = modbus.buff[3];
 

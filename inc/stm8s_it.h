@@ -22,7 +22,7 @@
 #define IT_TIM4_OVR_UIF 	23
 #define IT_FLASH			24
 
-uint8_t *GetFlagHandler(void);
+uint8_t *GetTimeHandler(void);
 
 void tim4_update(void) __interrupt (IT_TIM4_OVR_UIF);
 void exti2_irq(void) __interrupt (IT_EXTI2);
