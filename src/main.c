@@ -39,9 +39,6 @@ int main(void) {
 
     rim();
 
-    //const uint8_t hello[] = {"STM8\n\r"};
-    //uart_puts(hello);
-
     while(1) {
         uart_event();
         sys_event();

@@ -14,12 +14,18 @@
 #include "nrf24l01_mem.h"
 #include "mnprot.h"
 #include "modbus.h"
-
+#include "timer.h"
 
 // Get SYS variable Handler
 sys_t *GetSysHandler(void) {
     static sys_t sys;
     return &sys;
+}
+
+// Shift register handler
+uint8_t *GetRegHandler(void) {
+    static uint8_t reg_data;
+    return &reg_data;
 }
 
 
@@ -61,6 +67,9 @@ void setup(void) {
 	TIM4->ARR = 49;
 	TIM4->IER |= TIM4_IER_UIE;
 	TIM4->CR1 |= TIM4_CR1_CEN;
+
+    // Init aditional functions
+    os_timer_init(sys_timer_func);
 }
 
 // Simple block delay function
@@ -78,9 +87,6 @@ void uart_event(void) {
 
 	if( !uart_recv( &data ) ) {
 		// odebrano znak
-		// if ( data == 'a' ) {
-		// 	uart_putc('0');
-		// }
         modbus_putdata(data);
 	}
 }
@@ -101,13 +107,26 @@ void sys_event(void) {
 
 // Timer event
 void timer_event(void) {
-    uint8_t *flags = GetFlagHandler();
+    uint8_t *flags = GetTimeHandler();
 
-    if ( (*flags) && 0x01 ) {
+    if ( (*flags) & 0x01 ) {
         ClrBit(*flags, 0);
         modbusTickTimer();
     }
+
+    if ( (*flags) & 0x04 ) {
+        ClrBit(*flags, 2);
+        os_timer_event();
+    }
 }
+
+// System timer function
+void sys_timer_func(void) {
+    //const uint8_t hello[] = {"M\n\r"};
+    //uart_cp2txbuf(hello, 3);
+    nop();
+}
+
 
 /*
 // Reada one byte from EEPROM
@@ -175,11 +194,6 @@ void reg_transfer(uint8_t data) {
 
 
 // Usage Functions
-
-uint8_t *GetRegHandler(void) {
-    static uint8_t reg_data;
-    return &reg_data;
-}
 
 // Set output
 // num: number output
