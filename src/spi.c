@@ -1,10 +1,4 @@
-#ifdef __SDCC__
-  #include "stm8s.h"
-#else
-  #include <inttypes.h>
-  #include "stm8s_sim_def.h"
-  #include "stm8s_sim.h"
-#endif
+#include "stm8s.h"
 
 // Init SPI interface
 void spi_init(void) {

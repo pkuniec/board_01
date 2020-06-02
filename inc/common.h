@@ -43,7 +43,7 @@ void uart_event(void);
 void sys_event(void);
 void timer_event(void);
 
-void sys_timer_func(void);
+void sys_timer_func(void *arg);
 
 uint8_t *GetRegHandler(void);
 void reg_transfer(uint8_t data);

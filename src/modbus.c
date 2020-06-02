@@ -1,5 +1,4 @@
 #include "stm8s.h"
-
 #include "common.h"
 #include "uart.h"
 #include "modbus.h"

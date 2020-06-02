@@ -1,11 +1,4 @@
-#ifdef __SDCC__
-  #include "stm8s.h"
-#else
-  #include <inttypes.h>
-  #include "stm8s_sim_def.h"
-  #include "stm8s_sim.h"
-#endif
-
+#include "stm8s.h"
 #include "common.h"
 #include "stm8s_it.h"
 #include "uart.h"
@@ -69,7 +62,9 @@ void setup(void) {
 	TIM4->CR1 |= TIM4_CR1_CEN;
 
     // Init aditional functions
-    os_timer_init(sys_timer_func);
+    // Software timer
+    os_timer_init(0, 1, 1);
+    os_timer_setfn(0, sys_timer_func, (void *)2);
 }
 
 // Simple block delay function
@@ -99,7 +94,7 @@ void sys_event(void) {
 		// Flags from External IRQ
 		if ( sys->flags & (1<<E_IRQ) ) {
 			ClrBit(sys->flags, E_IRQ);
-			uart_putc('E');
+			//uart_putc('E');
 		}
 	}
 }
@@ -121,9 +116,10 @@ void timer_event(void) {
 }
 
 // System timer function
-void sys_timer_func(void) {
-    //const uint8_t hello[] = {"M\n\r"};
-    //uart_cp2txbuf(hello, 3);
+void sys_timer_func(void *arg) {
+    //const uint8_t hello[] = {"12345"};
+    //uart_cp2txbuf(hello, (int8_t)arg);
+    arg = (int8_t *)arg;
     nop();
 }
 
@@ -183,12 +179,14 @@ void adc_get(uint16_t *adc) {
 // data: byte to transmit
 void reg_transfer(uint8_t data) {
 	spi_transmit(data);
-	//SetBit(GPIOA->ODR, LATCH);
+	
     // Set bit 1 (LATCH) in GPIOA-ODR
+    //SetBit(GPIOA->ODR, LATCH);
     __asm__("bset 0x5000, #1");
 	delay(10);
-	//ClrBit(GPIOA->ODR, LATCH);
+	
     // Clear bit 1 (LATCH) in GPIOA-ODR
+    //ClrBit(GPIOA->ODR, LATCH);
     __asm__("bres 0x5000, #1");
 }
 
@@ -226,20 +224,20 @@ void nrf_recv(void) {
 // NRF24L01 mesh frame execute
 void mn_exec(void) {
     nrf_t *nrf = GetNrfHandler();
-	// Debug only
-	// for (uint8_t x=4; x<8; x++) {
-	// 	uart_putc(nrf->data_rx[x]);
+    // Debug only
+    // for (uint8_t x=4; x<8; x++) {
+    //     uart_putc(nrf->data_rx[x]);
 	// }
     // uart_putc('\n');
     // uart_putc('\r');
 
-	// if ( nrf->data_rx[4] == 'C' ) {
-	// 	output_set(3 ,1);
-	// }
+    // if ( nrf->data_rx[4] == 'C' ) {
+    // 	output_set(3 ,1);
+    // }
 
-	// if ( nrf->data_rx[4] == 'O' ) {
-	// 	output_set(3, 0);
-	// }
+    // if ( nrf->data_rx[4] == 'O' ) {
+    // 	output_set(3, 0);
+    // }
 
-	nrf_clear_rxbuff();
+    nrf_clear_rxbuff();
 }
