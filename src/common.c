@@ -124,57 +124,6 @@ void sys_timer_func(void *arg) {
 }
 
 
-/*
-// Reada one byte from EEPROM
-// addr: address of EEPROM memory to read
-uint8_t eeprom_read(uint8_t addr) {
-	uint8_t *eemem = (char *) 0x4000;
-	return *(eemem + addr);
-}
-*/
-
-/*
-// Write data tu EEPROM
-// addr: address memory to start save data
-// *data: poiter to data with will be save
-// len: length in bytes to save
-void eeprom_write(uint8_t addr, uint8_t *data, uint8_t len) {
-	uint8_t *eemem = (char *) 0x4000;
-
-	if( !(FLASH->IAPSR & FLASH_IAPSR_DUL) ) {
-	// Write lock
-		FLASH->DUKR = 0xAE;
-		FLASH->DUKR = 0x56;
-		while ( !(FLASH->IAPSR & FLASH_IAPSR_DUL) );
-	}
-
-	for( uint8_t i = 0; i<len; i++) {
-		*(eemem + addr + i) = data[i];
-		while ( !(FLASH->IAPSR & FLASH_IAPSR_EOP) );
-	}
-
-	FLASH->IAPSR &= ~FLASH_IAPSR_DUL; 
-}
-*/
-
-/*
-// Get ADC value
-// *adc: pointer to word (uint16_t) wher by stored ADC value
-void adc_get(uint16_t *adc) {
-	// wake up ADC
-	SetBit(ADC1->CR1, 0);
-	delay(100);
-	// Start conversion
-	SetBit(ADC1->CR1, 0);
-	while(ADC1->CSR & ADC1_CSR_EOC)
-	ClrBit(ADC1->CSR, 7);
-	*adc = (uint16_t)(ADC1->DRH << 8);
-	*adc |= (uint8_t)(ADC1->DRL);
-	// Sleep ADC
-	ClrBit(ADC1->CR1, 0);
-}
-*/
-
 // Transmit bit to shift register
 // data: byte to transmit
 void reg_transfer(uint8_t data) {
@@ -224,12 +173,12 @@ void nrf_recv(void) {
 // NRF24L01 mesh frame execute
 void mn_exec(void) {
     nrf_t *nrf = GetNrfHandler();
-    // Debug only
-    // for (uint8_t x=4; x<8; x++) {
-    //     uart_putc(nrf->data_rx[x]);
-	// }
-    // uart_putc('\n');
-    // uart_putc('\r');
+    //Debug only
+    for (uint8_t x=4; x<8; x++) {
+        uart_putc(nrf->data_rx[x]);
+	}
+    uart_putc('\n');
+    uart_putc('\r');
 
     // if ( nrf->data_rx[4] == 'C' ) {
     // 	output_set(3 ,1);

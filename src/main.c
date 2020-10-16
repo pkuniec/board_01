@@ -10,7 +10,7 @@
 #include "mnprot.h"
 #include "modbus.h"
 
-//uint8_t pload[4] = {'C', 'C', 'C', 'C'};
+uint8_t pload[4] = {'#', 'A', 'B', 'C'};
 
 int main(void) {
 
@@ -26,7 +26,6 @@ int main(void) {
     nrf_reset();
     nrf_init_sw();
     nrf_rx_enable();
-    //nrf_tx_enable();
 
     // Modbus
     modbusInit();
@@ -45,14 +44,14 @@ int main(void) {
         nrf_event();
         timer_event();
         modbus_event();
-        // delay(65000);
-        // delay(65000);
-        // delay(65000);
-        // delay(65000);
-        // mn_send(3, 2, pload, 0);
-        // if (pload[0] == 'C')
-        //     pload[0] = 'O';
-        // else
-        //     pload[0] = 'C';
+        delay(65000);
+        delay(65000);
+        delay(65000);
+        delay(65000);
+        mn_send(3, 2, pload, 0);
+        if (pload[0] == '#')
+            pload[0] = '*';
+        else
+            pload[0] = '#';
     }
 }

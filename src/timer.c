@@ -3,6 +3,7 @@
 
 static os_Timer_t os_timer;
 
+
 void os_timer_init(os_Timer_t *timer, uint8_t time, uint8_t repeat) {
     if ( !timer ) {
         timer = &os_timer;
