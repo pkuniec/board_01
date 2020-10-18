@@ -32,7 +32,7 @@ void mn_register_cb(mn_execute_cb func) {
 // ttl: TTL hop (0-127)
 // data: pointer for data to send
 // ack: ACK (0 - off, 1 - on)
-void mn_send(uint8_t dest, uint8_t ttl, uint8_t *data, uint8_t ack) {
+void mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ack) {
 
 	uint8_t frame[PAYLOADSIZE] = {0};
 	uint8_t i;
@@ -44,23 +44,33 @@ void mn_send(uint8_t dest, uint8_t ttl, uint8_t *data, uint8_t ack) {
 
 	if( ack ) {
 		ttl |= 0x80;
+
+		mn_frame.ackframe_idx = (++mn_frame.ackframe_idx & (ACK_BUFF_SIZE-1) );
+
+		mn_frame.ackframe[0][mn_frame.ackframe_idx] = dst;
+		mn_frame.ackframe[1][mn_frame.ackframe_idx] = ACK_RET_COUNT;
 	}
 
-	frame[0] = dest;
+	frame[0] = dst;
 	frame[1] = MN_ADDR;
 	frame[2] = ttl;
 	frame[3] = frame_id++;
 
-	for(i = 4; i <PAYLOADSIZE; i++) {
+	size = size + 4;
+	if (size > PAYLOADSIZE) {
+		size = PAYLOADSIZE;
+	}
+
+	for(i = 4; i <size; i++) {
 		frame[i] = *data++;
 	}
 
 	nrf_tx_enable();
 	nrf_sendcmd( W_TX_PAYLOAD_NOACK );
 	nrf_write_tx(frame, PAYLOADSIZE);
-
 	nrf_rx_enable();
 }
+
 
 
 // Decode frame from mesh network
@@ -69,8 +79,17 @@ void mn_decode_frame(void) {
 
 	if( (nrf->status & RX_DR) ) {
 		if( nrf->data_rx[DST_ADDR] == MN_ADDR ) {
+			// check if it's ack
+			// if(nrf->data_rx[5] == 0xFF && nrf->data_rx[6] == 0xFF) {
+			// 	for( x = 0; x < ACK_BUFF_SIZE; x++) {
+			// 		if (mn_frame.ackframe[0][x] == nrf->data_rx[SRC_ADDR]) {
+
+			// 		}
+			// 	}
+			// } else {
 			// execute
-			mn_execute();
+				mn_execute();
+			//}
 		} else 	if (nrf->data_rx[DST_ADDR] == 255 && nrf->data_rx[SRC_ADDR] != MN_ADDR) {
 			// retransmit + execute
 			mn_retransmit();
@@ -88,6 +107,7 @@ void mn_execute(void) {
     nrf_t *nrf = GetNrfHandler();
 	uint8_t x;
 	uint8_t e = 1;
+	uint8_t ack_r[3];
 
 	// Check if frame already have been executed
 	for( x = 0; x < CMP_BUFF_SIZE; x++) {
@@ -109,13 +129,15 @@ void mn_execute(void) {
         }
 
 		/* If set ACK */
-		// if( nrf->data_rx[ACK_TTL] & 0x80 ) {
-        //     e = 0xff;
-        //     nrf_tx_enable();
-        //     delay(500);
-        //     mn_send( nrf->data_rx[DST_ADDR], 5, &e, 0);
-        //     nrf_rx_enable();
-		// }
+		if( nrf->data_rx[ACK_TTL] & 0x80 ) {
+			ack_r[0] = nrf->data_rx[FRAME_ID];
+        	ack_r[1] = 0xFF;
+			ack_r[2] = 0xFF;
+            nrf_tx_enable();
+            delay(200);
+            mn_send( nrf->data_rx[DST_ADDR], 6, ack_r, 3, 0);
+            nrf_rx_enable();
+		}
 	}
 }
 

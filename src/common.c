@@ -104,11 +104,19 @@ void sys_event(void) {
 void timer_event(void) {
     uint8_t *flags = GetTimeHandler();
 
+	// 100 us
     if ( (*flags) & 0x01 ) {
         ClrBit(*flags, 0);
         modbusTickTimer();
     }
 
+	// 10 ms
+    if ( (*flags) & 0x02 ) {
+        ClrBit(*flags, 1);
+		// Check retransmit ack frame
+    }
+
+	// 1s
     if ( (*flags) & 0x04 ) {
         ClrBit(*flags, 2);
         os_timer_event();

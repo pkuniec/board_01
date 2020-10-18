@@ -48,7 +48,7 @@ int main(void) {
         delay(65000);
         delay(65000);
         delay(65000);
-        mn_send(3, 2, pload, 0);
+        mn_send(3, 2, pload, 4, 0);
         if (pload[0] == '#')
             pload[0] = '*';
         else
