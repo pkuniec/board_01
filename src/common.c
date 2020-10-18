@@ -9,6 +9,10 @@
 #include "modbus.h"
 #include "timer.h"
 
+// for test only
+static uint8_t pload[4] = {'-', '-', '0', '0'};
+
+
 // Get SYS variable Handler
 sys_t *GetSysHandler(void) {
     static sys_t sys;
@@ -64,8 +68,9 @@ void setup(void) {
     // Init aditional functions
     // Software timer
     os_timer_init(0, 1, 1);
-    os_timer_setfn(0, sys_timer_func, (void *)2);
+    os_timer_setfn(0, sys_timer_func, 0);
 }
+
 
 // Simple block delay function
 void delay(uint16_t time) {
@@ -113,22 +118,39 @@ void timer_event(void) {
 	// 10 ms
     if ( (*flags) & 0x02 ) {
         ClrBit(*flags, 1);
-		// Check retransmit ack frame
+
+		// Check retransmit ACK frame
+		send_to_mesh();
     }
 
 	// 1s
     if ( (*flags) & 0x04 ) {
         ClrBit(*flags, 2);
+
         os_timer_event();
     }
 }
 
+
 // System timer function
 void sys_timer_func(void *arg) {
-    //const uint8_t hello[] = {"12345"};
-    //uart_cp2txbuf(hello, (int8_t)arg);
-    arg = (int8_t *)arg;
-    nop();
+
+	static uint8_t cnt;
+	if ( !((uint8_t)cnt%10) ) {
+		if (!mn_send(3, DEFAULT_TTL, pload, 4, 2) ) {
+			if (pload[3] == '9') {
+				pload[3] = '0';
+				pload[2]++;
+			} else {
+				pload[3]++;
+			}
+		}
+	}
+	cnt++;
+
+	// const uint8_t hello[] = {"--"};
+    // uart_cp2txbuf(hello, 2;
+	arg = (int8_t *)arg;
 }
 
 

@@ -12,8 +12,8 @@ uint8_t *GetTimeHandler(void) {
     return &irq_flags;
 }
 
-// TIM4 ISR (100 us)
-void tim4_update(void) __interrupt (IT_TIM4_OVR_UIF) {    
+// TIM4 ISR (OS_TIME_US 100 us)
+void tim4_update(void) __interrupt (IT_TIM4_OVR_UIF) {
     TIM4->SR1 &= ~TIM4_SR1_UIF;
 
     // Timer 10ms
@@ -29,6 +29,7 @@ void tim4_update(void) __interrupt (IT_TIM4_OVR_UIF) {
         SetBit(irq_flags, 2);
     }
 
+    // 100 us
     SetBit(irq_flags, 0);
 }
 
