@@ -10,8 +10,6 @@
 #include "mnprot.h"
 #include "modbus.h"
 
-uint8_t pload[4] = {'#', 'A', 'B', 'C'};
-
 int main(void) {
 
     setup();
@@ -44,14 +42,5 @@ int main(void) {
         nrf_event();
         timer_event();
         modbus_event();
-        delay(65000);
-        delay(65000);
-        delay(65000);
-        delay(65000);
-        mn_send(3, 2, pload, 4, 0);
-        if (pload[0] == '#')
-            pload[0] = '*';
-        else
-            pload[0] = '#';
     }
 }

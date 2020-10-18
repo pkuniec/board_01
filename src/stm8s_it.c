@@ -13,7 +13,7 @@ uint8_t *GetTimeHandler(void) {
 }
 
 // TIM4 ISR (100 us)
-void tim4_update(void) __interrupt (IT_TIM4_OVR_UIF) {    
+void tim4_update(void) __interrupt (IT_TIM4_OVR_UIF) {
     TIM4->SR1 &= ~TIM4_SR1_UIF;
 
     // Timer 10ms
