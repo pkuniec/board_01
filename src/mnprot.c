@@ -101,25 +101,28 @@ int8_t mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ac
 
 // Check & resend ACK
 void check_ack(void) {
-	static uint8_t x;
-
+	for(uint8_t x=0; x<ACK_BUFF_SIZE; x++) {
 	// Check if recived ACK
-	if ( mn_frame.ackframe[2][x] ) {
-		//resend frame
-		mn_frame.ackframe[2][x]--; // decrement resend frame count
-		mn_frame.frame[0] = mn_frame.ackframe[0][x]; // DST
-		mn_frame.frame[1] = MN_ADDR; // SRC
-		mn_frame.frame[2] = DEFAULT_TTL; // TTL
-		mn_frame.frame[3] = mn_frame.ackframe[1][x]; // Frame ID
+		if ( mn_frame.ackframe[2][x] ) {
+			//resend frame
+			mn_frame.ackframe[2][x]--; // decrement resend frame count
+			mn_frame.frame[0] = mn_frame.ackframe[0][x]; // DST
+			mn_frame.frame[1] = MN_ADDR; // SRC
+			mn_frame.frame[2] = DEFAULT_TTL; // TTL
+			mn_frame.frame[3] = mn_frame.ackframe[1][x]; // Frame ID
 
-		for(uint8_t i = 0; i <mn_frame.ackframe[3][x]; i++) {
-			mn_frame.frame[i+4] = mn_frame.rsend_buff[x][i];
+			for(uint8_t i = 0; i <mn_frame.ackframe[3][x]; i++) {
+				mn_frame.frame[i+4] = mn_frame.rsend_buff[x][i];
+			}
+
+			mn_send_hw();
+
+			if (!mn_frame.ackframe[2][x]) {
+				mn_frame.ack_free++;
+			}
+			break;
 		}
-
-		mn_send_hw();
 	}
-
-	x = ++x & (ACK_BUFF_SIZE-1);
 }
 
 
@@ -184,7 +187,7 @@ void mn_execute(uint8_t ack) {
 				ack_r[0] = 0xFF; // ACK patern (func 0xFF)
 				ack_r[1] = nrf->data_rx[FRAME_ID];
 				nrf_tx_enable();
-				delay(10+MN_ADDR);
+				delay(10*MN_ADDR);
 				mn_send( nrf->data_rx[SRC_ADDR], 6, ack_r, 2, 0);
 				nrf_rx_enable();
 			}

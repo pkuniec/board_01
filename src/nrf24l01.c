@@ -58,7 +58,7 @@ void nrf_init_sw(void) {
 	nrf_writereg( RX_PW_P1, PAYLOADSIZE);
 	nrf_writereg( EN_AA, 0x00);
 	nrf_writereg( RF_CH, 11);
-	nrf_writereg( RF_SETUP, TRANS_SPEED_1MB );
+	nrf_writereg( RF_SETUP, TRANS_SPEED_1MB | RF_PWR_0dB );
 	nrf_writereg( SETUP_RETR, 0x40);
 	nrf_writereg( FEATURE, EN_DYN_ACK);
 	nrf_writereg( CONFIG, EN_CRC | CRC0 | MASK_MAX_RT | MASK_TX_DS);

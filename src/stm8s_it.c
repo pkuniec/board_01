@@ -4,8 +4,8 @@
 #include "queue.h"
 #include "uart.h"
 
-static uint8_t usec = OS_TIM_10MS;
-static uint8_t msec = OS_TIM_1S;
+static uint8_t usec = 100;
+static uint8_t msec = 100;
 static uint8_t irq_flags;
 
 uint8_t *GetTimeHandler(void) {
@@ -18,14 +18,14 @@ void tim4_update(void) __interrupt (IT_TIM4_OVR_UIF) {
 
     // Timer 10ms
     if ( !usec-- ) {
-        usec = OS_TIM_10MS;
+        usec = 100;
         msec--;
         SetBit(irq_flags, 1);
     }
 
     // Timer 1s
     if ( !msec ) {
-        msec = OS_TIM_1S;
+        msec = 100;
         SetBit(irq_flags, 2);
     }
 
