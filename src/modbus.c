@@ -78,7 +78,7 @@ uint16_t modbusCRC(uint8_t len) {
 	return crc;
 }
 
-
+// Reset modbus state
 void modbusReset(void) {
 	modbus.idx = 0;
 	modbus.timer = 0;
@@ -86,6 +86,7 @@ void modbusReset(void) {
 }
 
 
+// Modbus timer to check gap in frame
 void modbusTickTimer(void) {
 	if ( modbus.BusState & mbReceiving ) {
 		modbus.timer++;

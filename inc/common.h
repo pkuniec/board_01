@@ -30,6 +30,18 @@
 #define E_IRQ   0   // External IRQ
 #define N_IRQ   1   // NRF24L01 IRQ
 
+
+// Timer calc
+#define BASE_CLOCK  2000000UL
+#define OS_TIM_PRE  4
+#define OS_TIM_CNT  50
+
+#define OS_TIM_CLK  BASE_CLOCK / OS_TIM_PRE / OS_TIM_CNT
+#define OS_TIM_US   1000000 / OS_TIM_CLK // 100 us
+
+#define OS_TIM_10MS 10000 / OS_TIM_US
+#define OS_TIM_1S   1000000 / OS_TIM_10MS / OS_TIM_US
+
 typedef struct {
     uint8_t flags;
 } sys_t;

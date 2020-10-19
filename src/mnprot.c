@@ -27,42 +27,63 @@ void mn_register_cb(mn_execute_cb func) {
 }
 
 
+// Init structure
+void mn_init(void) {
+	mn_frame.ack_free = ACK_BUFF_SIZE;
+}
+
+
+// Send frame to module
+static void mn_send_hw(void) {
+	nrf_tx_enable();
+	nrf_sendcmd( W_TX_PAYLOAD_NOACK );
+	nrf_write_tx(mn_frame.frame, PAYLOADSIZE);
+	nrf_rx_enable();
+}
+
+
 // Send data to mesh network
 // dest: destination addr
 // ttl: TTL hop (0-127)
 // data: pointer for data to send
+// size: data size
 // ack: ACK (0 - off, 1 - on)
-void mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ack) {
+int8_t mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ack) {
 
 	uint8_t i;
-	uint8_t frame[PAYLOADSIZE] = {0};
+	//uint8_t frame[PAYLOADSIZE] = {0};
 	static uint8_t frame_id;
 
 
-	if( ttl > 127 ) {
+	if ( ttl > 127 ) {
 		ttl = DEFAULT_TTL;
 	}
 
-	if( ack ) {
+	if ( ack ) {
 		ttl |= 0x80;
-		// TODO: dopisac warunek miejsca w buforze ACK (ack_free)
+		
+		if (mn_frame.ack_free) {
 
-		mn_frame.ackframe_idx = (++mn_frame.ackframe_idx & (ACK_BUFF_SIZE-1) );
-		mn_frame.ackframe[0][mn_frame.ackframe_idx] = dst;
-		mn_frame.ackframe[1][mn_frame.ackframe_idx] = frame_id;
-		mn_frame.ackframe[2][mn_frame.ackframe_idx] = ACK_RET_COUNT;
-		mn_frame.ackframe[3][mn_frame.ackframe_idx] = size;
-		mn_frame.ack_free++;
+			mn_frame.ack_free--;
+			mn_frame.ackframe_idx = (++mn_frame.ackframe_idx & (ACK_BUFF_SIZE-1) );
+			mn_frame.ackframe[0][mn_frame.ackframe_idx] = dst;
+			mn_frame.ackframe[1][mn_frame.ackframe_idx] = frame_id;
+			mn_frame.ackframe[2][mn_frame.ackframe_idx] = ACK_RET_COUNT;
+			mn_frame.ackframe[3][mn_frame.ackframe_idx] = size;
+		
 
-		for(i=0; i<size; i++) {
-			mn_frame.rsend_buff[mn_frame.ackframe_idx][i] = data[i];
+			for(i=0; i<size; i++) {
+				mn_frame.rsend_buff[mn_frame.ackframe_idx][i] = data[i];
+			}
+		} else {
+			return -1;
 		}
 	}
 
-	frame[0] = dst;
-	frame[1] = MN_ADDR;
-	frame[2] = ttl;
-	frame[3] = frame_id++;
+	mn_frame.frame[0] = dst;
+	mn_frame.frame[1] = MN_ADDR;
+	mn_frame.frame[2] = ttl;
+	mn_frame.frame[3] = frame_id++;
 
 	size = size + 4;
 	if (size > PAYLOADSIZE) {
@@ -70,42 +91,37 @@ void mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ack)
 	}
 
 	for(i = 4; i <size; i++) {
-		frame[i] = *data++;
+		mn_frame.frame[i] = *data++;
 	}
 
-	nrf_tx_enable();
-	nrf_sendcmd( W_TX_PAYLOAD_NOACK );
-	nrf_write_tx(frame, PAYLOADSIZE);
-	nrf_rx_enable();
+	mn_send_hw();
+	return 0;
 }
 
 
 // Check & resend ACK
 void check_ack(void) {
-	uint8_t x, i;
-	uint8_t frame[PAYLOADSIZE] = {0};
+	static uint8_t x;
 
-	for( x = 0; x < ACK_BUFF_SIZE; x++) {
-		// Check if recived ACK
-		if ( mn_frame.ackframe[2][x] ) {
-			//resend frame
-			mn_frame.ackframe[2][x]--; // decrement resend count
-			frame[0] = mn_frame.ackframe[0][x]; // DST
-			frame[1] = MN_ADDR; // SRC
-			frame[2] = DEFAULT_TTL; // TTL
-			frame[3] = mn_frame.ackframe[1][x]; // Frame ID
+	// Check if recived ACK
+	if ( mn_frame.ackframe[2][x] ) {
+		//resend frame
+		mn_frame.ackframe[2][x]--; // decrement resend frame count
+		mn_frame.frame[0] = mn_frame.ackframe[0][x]; // DST
+		mn_frame.frame[1] = MN_ADDR; // SRC
+		mn_frame.frame[2] = DEFAULT_TTL; // TTL
+		mn_frame.frame[3] = mn_frame.ackframe[1][x]; // Frame ID
 
-			for(i = 0; i <mn_frame.ackframe[3][x]; i++) {
-				frame[i+4] = mn_frame.rsend_buff[x][i];
-			}
-
-			nrf_tx_enable();
-			nrf_sendcmd( W_TX_PAYLOAD_NOACK );
-			nrf_write_tx(frame, PAYLOADSIZE);
-			nrf_rx_enable();
+		for(uint8_t i = 0; i <mn_frame.ackframe[3][x]; i++) {
+			mn_frame.frame[i+4] = mn_frame.rsend_buff[x][i];
 		}
+
+		mn_send_hw();
 	}
+
+	x = ++x & (ACK_BUFF_SIZE-1);
 }
+
 
 // Decode frame from mesh network
 void mn_decode_frame(void) {
@@ -115,30 +131,27 @@ void mn_decode_frame(void) {
 	if( (nrf->status & RX_DR) ) {
 		if( nrf->data_rx[DST_ADDR] == MN_ADDR ) {
 
-			// check if it's ack
+			// Check if it's ACK (func no. 0xFF)
 			if(0xFF == nrf->data_rx[4] ) {
 				for( x = 0; x < ACK_BUFF_SIZE; x++) {
-					if (mn_frame.ackframe[0][x] == nrf->data_rx[SRC_ADDR]) { // check if SRC addr == dst in ack buffer
-						if (mn_frame.ackframe[1][x] == nrf->data_rx[5]) { // check if frame ID is correct
-							if(mn_frame.ack_free) {
-								mn_frame.ack_free--;
-							}
-
+					if (mn_frame.ackframe[0][x] == nrf->data_rx[SRC_ADDR]) { // check if SRC addr == dst in ACK buffer
+						if (mn_frame.ackframe[1][x] == nrf->data_rx[5]) { // check if Frame ID is correct
+							mn_frame.ack_free++;
 							mn_frame.ackframe[2][x] = 0;
 							break;
 						}
 					}
 				}
 			} else {
-			// execute
-				mn_execute();
+			// Execute
+				mn_execute(1);
 			}
 		} else 	if (255 == nrf->data_rx[DST_ADDR] && nrf->data_rx[SRC_ADDR] != MN_ADDR) {
-			// retransmit + execute
+			// Retransmit + execute
 			mn_retransmit();
-			mn_execute();
+			mn_execute(0);
 		} else if ( nrf->data_rx[SRC_ADDR] != MN_ADDR ) {
-			// retransmit
+			// Retransmit
 			mn_retransmit();
 		}
 	}
@@ -146,7 +159,7 @@ void mn_decode_frame(void) {
 
 
 // Execute frame
-void mn_execute(void) {
+void mn_execute(uint8_t ack) {
     nrf_t *nrf = GetNrfHandler();
 	uint8_t x;
 	uint8_t e = 1;
@@ -154,7 +167,7 @@ void mn_execute(void) {
 
 	// Check if frame already have been executed
 	for( x = 0; x < CMP_BUFF_SIZE; x++) {
-		if( (mn_frame.cmpframe[0][x] == nrf->data_rx[SRC_ADDR]) && (mn_frame.cmpframe[1][x] == nrf->data_rx[FRAME_ID]) ) {
+		if ( (mn_frame.cmpframe[0][x] == nrf->data_rx[SRC_ADDR]) && (mn_frame.cmpframe[1][x] == nrf->data_rx[FRAME_ID]) ) {
 			e = 0;
 			break;
 		}
@@ -166,15 +179,15 @@ void mn_execute(void) {
         mn_frame.cmpframe[0][mn_frame.cframe_idx] = nrf->data_rx[SRC_ADDR]; // source addr.
         mn_frame.cmpframe[1][mn_frame.cframe_idx] = nrf->data_rx[FRAME_ID]; // frame ID
 
-		/* If set ACK */
-		if( nrf->data_rx[ACK_TTL] & 0x80 ) {
-			ack_r[0] = 0xFF;
-        	ack_r[1] = nrf->data_rx[FRAME_ID];
-            nrf_tx_enable();
-            delay(100+MN_ADDR);
-            mn_send( nrf->data_rx[SRC_ADDR], 6, ack_r, 2, 0);
-            nrf_rx_enable();
-		}
+		// If is set ACK, send it
+			if ( (nrf->data_rx[ACK_TTL] & 0x80) && ack) {
+				ack_r[0] = 0xFF; // ACK patern (func 0xFF)
+				ack_r[1] = nrf->data_rx[FRAME_ID];
+				nrf_tx_enable();
+				delay(10+MN_ADDR);
+				mn_send( nrf->data_rx[SRC_ADDR], 6, ack_r, 2, 0);
+				nrf_rx_enable();
+			}
 
 	    // Execute
         if ( mn_frame.execute ) {

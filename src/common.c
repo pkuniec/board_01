@@ -117,7 +117,7 @@ void timer_event(void) {
 	// 10 ms
     if ( (*flags) & 0x02 ) {
         ClrBit(*flags, 1);
-		// Check retransmit ack frame
+		// Check retransmit ACK frame
 		check_ack();
     }
 
