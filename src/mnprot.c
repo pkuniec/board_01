@@ -186,10 +186,9 @@ void mn_execute(uint8_t ack) {
 			if ( (nrf->data_rx[ACK_TTL] & 0x80) && ack) {
 				ack_r[0] = 0xFF; // ACK patern (func 0xFF)
 				ack_r[1] = nrf->data_rx[FRAME_ID];
-				nrf_tx_enable();
+
 				delay(10*MN_ADDR);
-				mn_send( nrf->data_rx[SRC_ADDR], 6, ack_r, 2, 0);
-				nrf_rx_enable();
+				mn_send( nrf->data_rx[SRC_ADDR], DEFAULT_TTL, ack_r, 2, 0);
 			}
 
 	    // Execute
@@ -220,14 +219,16 @@ void mn_retransmit(void) {
 		}
 
 		if( send ) {
-			nrf_tx_enable();
 			mn_frame.rframe_idx = (++mn_frame.rframe_idx & (RET_BUFF_SIZE-1) );
 			mn_frame.retframe[0][mn_frame.rframe_idx] = nrf->data_rx[DST_ADDR];
 			mn_frame.retframe[1][mn_frame.rframe_idx] = nrf->data_rx[SRC_ADDR];
 			mn_frame.retframe[2][mn_frame.rframe_idx] = nrf->data_rx[FRAME_ID];
+
+			// Pararandom delay send time
+			delay(55*MN_ADDR);
+
+			nrf_tx_enable();
 			nrf_sendcmd( W_TX_PAYLOAD_NOACK );
-            // Pararandom delay send time
-			delay(50*MN_ADDR);
 			nrf_write_tx(nrf->data_rx, PAYLOADSIZE);
 			nrf_rx_enable();
 		}

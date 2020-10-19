@@ -146,6 +146,7 @@ void sys_timer_func(void *arg) {
 	}
 	}
 	cnt++;
+
 	// const uint8_t hello[] = {"--"};
     // uart_cp2txbuf(hello, 2;
 
