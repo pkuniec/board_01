@@ -40,7 +40,5 @@ void mn_register_cb(mn_execute_cb func);
 int8_t mn_send(uint8_t dest, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ack);
 void check_ack(void);
 void mn_decode_frame(void);
-void mn_execute(uint8_t ack);
-void mn_retransmit(void);
 
 #endif
