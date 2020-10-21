@@ -29,16 +29,48 @@ void mn_register_cb(mn_execute_cb func) {
 
 // Init structure
 void mn_init(void) {
-	mn_frame.ack_free = ACK_BUFF_SIZE;
+	nop();
 }
 
 
 // Send frame to module
+// data: pointer to payload buffer 
 static void mn_send_hw(uint8_t *data) {
 	nrf_tx_enable();
 	nrf_sendcmd( W_TX_PAYLOAD_NOACK );
 	nrf_write_tx(data, PAYLOADSIZE);
 	nrf_rx_enable();
+}
+
+
+// Copy data to payload buffer
+// *src: poiter to source data
+// size: data size
+// idx: payload buffer index to put data
+static void cp2buff(uint8_t *src, uint8_t size, uint8_t idx) {
+	uint8_t i;
+
+	if (idx < PL_BUFF_SIZE) {
+		for(i = 0; i <size; i++) {
+			mn_frame.frame[idx][i] = *src++;
+		}
+		mn_frame.frame[idx][PAYLOADSIZE] = 1;
+	}
+}
+
+
+// Return free index in payload buffer
+// or -1 if no space in bufer
+static int8_t get_free_plidx(void) {
+	uint8_t i;
+
+	for (i=0; i<PL_BUFF_SIZE; i++) {
+	// Search free space in buffer frame
+		if ( !mn_frame.frame[i][PAYLOADSIZE] ) {
+			return i;
+		}
+	}
+	return -1;
 }
 
 
@@ -48,39 +80,32 @@ static void mn_send_hw(uint8_t *data) {
 // data: pointer for data to send
 // size: data size
 // ack: ACK (0 - off, 1 - on)
+// return: -1: no space in ack buff, -2: no space in payload buff
 int8_t mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ack) {
 	uint8_t i;
+	int8_t idx;
 	static uint8_t frame_id;
 
-	if ( ttl > 127 ) {
+	idx = get_free_plidx();
+
+	if (-1 == idx) {
+		return -2;
+	}
+
+	if (ttl > 127) {
 		ttl = DEFAULT_TTL;
 	}
 
+	mn_frame.frame[idx][0] = dst;
+	mn_frame.frame[idx][1] = MN_ADDR;
+	mn_frame.frame[idx][2] = ttl;
+	mn_frame.frame[idx][3] = frame_id++;
+	mn_frame.frame[idx][PAYLOADSIZE] = 1;
+
 	if ( ack ) {
 		ttl |= 0x80;
-		
-		if (mn_frame.ack_free) {
-
-			mn_frame.ack_free--;
-			mn_frame.ackframe_idx = (++mn_frame.ackframe_idx & (ACK_BUFF_SIZE-1) );
-			mn_frame.ackframe[0][mn_frame.ackframe_idx] = dst;
-			mn_frame.ackframe[1][mn_frame.ackframe_idx] = frame_id;
-			mn_frame.ackframe[2][mn_frame.ackframe_idx] = ACK_RET_COUNT;
-			mn_frame.ackframe[3][mn_frame.ackframe_idx] = size;
-		
-
-			for(i=0; i<size; i++) {
-				mn_frame.rsend_buff[mn_frame.ackframe_idx][i] = data[i];
-			}
-		} else {
-			return -1;
-		}
+		mn_frame.frame[idx][PAYLOADSIZE]+= ACK_RET_COUNT;
 	}
-
-	mn_frame.frame[0] = dst;
-	mn_frame.frame[1] = MN_ADDR;
-	mn_frame.frame[2] = ttl;
-	mn_frame.frame[3] = frame_id++;
 
 	size = size + 4;
 	if (size > PAYLOADSIZE) {
@@ -88,40 +113,28 @@ int8_t mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ac
 	}
 
 	for(i = 4; i <size; i++) {
-		mn_frame.frame[i] = *data++;
+		mn_frame.frame[idx][i] = *data++;
 	}
 
-	mn_send_hw(mn_frame.frame);
 	return 0;
 }
 
 
-// Check & resend ACK
-// Run in pooling (time interval) to chck and resend ACK frames 
-void check_ack(void) {
-	for(uint8_t x=0; x<ACK_BUFF_SIZE; x++) {
-		// Check if retry send ACK > 0 
-		if ( mn_frame.ackframe[2][x] ) {
-			//resend frame
-			mn_frame.ackframe[2][x]--; // decrement resend frame count
-			mn_frame.frame[0] = mn_frame.ackframe[0][x]; // DST
-			mn_frame.frame[1] = MN_ADDR; // SRC
-			mn_frame.frame[2] = DEFAULT_TTL; // TTL
-			mn_frame.frame[3] = mn_frame.ackframe[1][x]; // Frame ID
-
-			for(uint8_t i = 0; i <mn_frame.ackframe[3][x]; i++) {
-				mn_frame.frame[i+4] = mn_frame.rsend_buff[x][i];
-			}
-
-			mn_send_hw(mn_frame.frame);
-
-			if (!mn_frame.ackframe[2][x]) {
-				mn_frame.ack_free++;
-			}
+// Send frame from buffer to module
+void send_to_mesh(void) {
+	uint8_t i;
+	// make rotate idx;
+	for (i=0; i<PL_BUFF_SIZE; i++) {
+		// Search free stock in buffer frame
+		if ( mn_frame.frame[i][PAYLOADSIZE] ) {
+			mn_frame.frame[i][PAYLOADSIZE]--;
+			mn_send_hw(mn_frame.frame[i]);
 			break;
 		}
 	}
 }
+
+
 
 
 // Retransmit frame to mesh network
@@ -129,10 +142,10 @@ static void mn_retransmit(void) {
     nrf_t *nrf = GetNrfHandler();
 	uint8_t ack = (nrf->data_rx[ACK_TTL] & 0x80); // get ACK
 	uint8_t x = (nrf->data_rx[ACK_TTL] & 0x7F);	 // x = TTL
-	uint8_t send = 1;
+	int8_t send = 1;
 
 	// Decrement TTL
-	if( --x ) {
+	if( x-- ) {
 		nrf->data_rx[ACK_TTL] = x | ack;
 
 		// Check if frame was retransmit
@@ -149,9 +162,10 @@ static void mn_retransmit(void) {
 			mn_frame.retframe[1][mn_frame.rframe_idx] = nrf->data_rx[SRC_ADDR];
 			mn_frame.retframe[2][mn_frame.rframe_idx] = nrf->data_rx[FRAME_ID];
 
-			// Pararandom delay send time
-			delay(100*MN_ADDR);
-			mn_send_hw(nrf->data_rx);
+			send = get_free_plidx();
+			if (send != -1) {
+				cp2buff(nrf->data_rx, PAYLOADSIZE, send);
+			}
 		}
 	}
 }
@@ -184,8 +198,6 @@ static void mn_execute(uint8_t ack) {
 		if ( (nrf->data_rx[ACK_TTL] & 0x80) && ack) {
 			ack_replay[0] = 0xFF; // ACK patern (func 0xFF)
 			ack_replay[1] = nrf->data_rx[FRAME_ID];
-
-			delay(80*MN_ADDR);
 			mn_send( nrf->data_rx[SRC_ADDR], DEFAULT_TTL, ack_replay, 2, 0);
 		}
 
@@ -195,6 +207,7 @@ static void mn_execute(uint8_t ack) {
         }
 	}
 }
+
 
 // Decode frame from mesh network
 // This function tak action for recived frame (exec, retransmit, mark ACK response)
@@ -208,15 +221,26 @@ void mn_decode_frame(void) {
 
 			// Check if it's ACK (func no. 0xFF)
 			if(0xFF == nrf->data_rx[4] ) {
-				for( x = 0; x < ACK_BUFF_SIZE; x++) {
-					if (mn_frame.ackframe[0][x] == nrf->data_rx[SRC_ADDR]) { // check if SRC addr == dst in ACK buffer
-						if (mn_frame.ackframe[1][x] == nrf->data_rx[5]) { // check if Frame ID is correct
-							mn_frame.ack_free++;
-							mn_frame.ackframe[2][x] = 0;
+				// for( x = 0; x < ACK_BUFF_SIZE; x++) {
+				// 	if (mn_frame.ackframe[0][x] == nrf->data_rx[SRC_ADDR]) { // check if SRC addr == dst in ACK buffer
+				// 		if (mn_frame.ackframe[1][x] == nrf->data_rx[5]) { // check if Frame ID is correct
+				// 			mn_frame.ack_free++;
+				// 			mn_frame.ackframe[2][x] = 0;
+				// 			break;
+				// 		}
+				// 	}
+				// }
+
+				// check and mark frame in payload buffer as send
+				for( x = 0; x < PL_BUFF_SIZE; x++) {
+					if (mn_frame.frame[x][SRC_ADDR] == nrf->data_rx[SRC_ADDR]) { // check if SRC addr == dst in ACK buffer
+						if (mn_frame.frame[x][FRAME_ID] == nrf->data_rx[5]) { // check if Frame ID is correct
+							mn_frame.frame[x][SRC_ADDR] = 0;
 							break;
 						}
 					}
 				}
+
 			} else {
 			// Execute
 				mn_execute(1);

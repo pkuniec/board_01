@@ -117,14 +117,14 @@ void timer_event(void) {
 	// 10 ms
     if ( (*flags) & 0x02 ) {
         ClrBit(*flags, 1);
+
+		// Check retransmit ACK frame
+		send_to_mesh();
     }
 
 	// 1s
     if ( (*flags) & 0x04 ) {
         ClrBit(*flags, 2);
-
-		// Check retransmit ACK frame
-		check_ack();
 
         os_timer_event();
     }
