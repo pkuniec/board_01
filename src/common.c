@@ -10,7 +10,7 @@
 #include "timer.h"
 
 // for test only
-static uint8_t pload[4] = {'0', '0', 'X', 'V'};
+static uint8_t pload[4] = {'0', '0', '-', '-'};
 
 
 // Get SYS variable Handler
@@ -122,6 +122,7 @@ void timer_event(void) {
 	// 1s
     if ( (*flags) & 0x04 ) {
         ClrBit(*flags, 2);
+
 		// Check retransmit ACK frame
 		check_ack();
 
@@ -132,20 +133,19 @@ void timer_event(void) {
 // System timer function
 void sys_timer_func(void *arg) {
 
-	static uint8_t cnt;
+	// static uint8_t cnt;
 
-	if ( !(cnt%2) ) {
-
-	if (!mn_send(3, DEFAULT_TTL, pload, 4, 1) ) {
-		if (pload[0] == '9') {
-        	pload[0] = '0';
-        	pload[1]++;
-    	} else {
-        	pload[0]++;
-    	}
-	}
-	}
-	cnt++;
+	// if ( !(cnt%10) ) {
+	// 	if (!mn_send(3, DEFAULT_TTL, pload, 4, 1) ) {
+	// 		if (pload[0] == '9') {
+	// 			pload[0] = '0';
+	// 			pload[1]++;
+	// 		} else {
+	// 			pload[0]++;
+	// 		}
+	// 	}
+	// }
+	// cnt++;
 
 	// const uint8_t hello[] = {"--"};
     // uart_cp2txbuf(hello, 2;

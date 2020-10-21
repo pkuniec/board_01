@@ -99,12 +99,8 @@ int8_t mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ac
 // Check & resend ACK
 // Run in pooling (time interval) to chck and resend ACK frames 
 void check_ack(void) {
-	// static uint8_t x;
-	// x++;
-	// x = (x & (ACK_BUFF_SIZE-1));
-
 	for(uint8_t x=0; x<ACK_BUFF_SIZE; x++) {
-	// Check if retry send ACK > 0 
+		// Check if retry send ACK > 0 
 		if ( mn_frame.ackframe[2][x] ) {
 			//resend frame
 			mn_frame.ackframe[2][x]--; // decrement resend frame count
@@ -154,12 +150,7 @@ static void mn_retransmit(void) {
 			mn_frame.retframe[2][mn_frame.rframe_idx] = nrf->data_rx[FRAME_ID];
 
 			// Pararandom delay send time
-			delay(55*MN_ADDR);
-
-			// nrf_tx_enable();
-			// nrf_sendcmd( W_TX_PAYLOAD_NOACK );
-			// nrf_write_tx(nrf->data_rx, PAYLOADSIZE);
-			// nrf_rx_enable();
+			delay(100*MN_ADDR);
 			mn_send_hw(nrf->data_rx);
 		}
 	}
@@ -173,7 +164,7 @@ static void mn_execute(uint8_t ack) {
     nrf_t *nrf = GetNrfHandler();
 	uint8_t x;
 	uint8_t e = 1;
-	uint8_t ack_r[2];
+	uint8_t ack_replay[2];
 
 	// Check if frame already have been executed
 	for( x = 0; x < CMP_BUFF_SIZE; x++) {
@@ -191,11 +182,11 @@ static void mn_execute(uint8_t ack) {
 
 		// If is set ACK, send it
 		if ( (nrf->data_rx[ACK_TTL] & 0x80) && ack) {
-			ack_r[0] = 0xFF; // ACK patern (func 0xFF)
-			ack_r[1] = nrf->data_rx[FRAME_ID];
+			ack_replay[0] = 0xFF; // ACK patern (func 0xFF)
+			ack_replay[1] = nrf->data_rx[FRAME_ID];
 
-			delay(10*MN_ADDR);
-			mn_send( nrf->data_rx[SRC_ADDR], DEFAULT_TTL, ack_r, 2, 0);
+			delay(80*MN_ADDR);
+			mn_send( nrf->data_rx[SRC_ADDR], DEFAULT_TTL, ack_replay, 2, 0);
 		}
 
 	    // Execute

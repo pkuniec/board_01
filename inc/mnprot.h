@@ -1,7 +1,7 @@
 #ifndef MNPROT_H
 #define MNPROT_H
 
-#define MN_ADDR		9 //3 - odbiorca, 9 - nadawca
+#define MN_ADDR		3 //3 - odbiorca, 9 - nadawca
 
 // !Buffers size must be pow. 2 ex: 2, 4, 8, 16 ...
 #define CMP_BUFF_SIZE	4
