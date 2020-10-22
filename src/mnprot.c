@@ -27,12 +27,6 @@ void mn_register_cb(mn_execute_cb func) {
 }
 
 
-// Init structure
-void mn_init(void) {
-	nop();
-}
-
-
 // Send frame to module
 // data: pointer to payload buffer 
 static void mn_send_hw(uint8_t *data) {
@@ -54,22 +48,24 @@ static void cp2buff(uint8_t *src, uint8_t size, uint8_t idx) {
 		for(i = 0; i <size; i++) {
 			mn_frame.frame[idx][i] = *src++;
 		}
-		mn_frame.frame[idx][PAYLOADSIZE] = 1;
+		mn_frame.frame[idx][PAYLOAD_COUNT] = 1;
 	}
 }
 
 
 // Return free index in payload buffer
-// or -1 if no space in bufer
-static int8_t get_free_plidx(void) {
-	uint8_t i;
+// *idx: pointer to variable for free index num
+// Return: 0 - OK, -1 - no free index
+static int8_t get_free_plidx(uint8_t *idx) {
 
-	for (i=0; i<PL_BUFF_SIZE; i++) {
+	for (uint8_t i=0; i<PL_BUFF_SIZE; i++) {
 	// Search free space in buffer frame
-		if ( !mn_frame.frame[i][PAYLOADSIZE] ) {
-			return i;
+		if ( !mn_frame.frame[i][PAYLOAD_COUNT] ) {
+			*idx = i;
+			return 0;
 		}
 	}
+
 	return -1;
 }
 
@@ -84,11 +80,8 @@ static int8_t get_free_plidx(void) {
 int8_t mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ack) {
 	uint8_t i;
 	int8_t idx;
-	static uint8_t frame_id;
 
-	idx = get_free_plidx();
-
-	if (-1 == idx) {
+	if (get_free_plidx(&idx)) {
 		return -2;
 	}
 
@@ -96,23 +89,25 @@ int8_t mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ac
 		ttl = DEFAULT_TTL;
 	}
 
-	mn_frame.frame[idx][0] = dst;
-	mn_frame.frame[idx][1] = MN_ADDR;
-	mn_frame.frame[idx][2] = ttl;
-	mn_frame.frame[idx][3] = frame_id++;
-	mn_frame.frame[idx][PAYLOADSIZE] = 1;
+	mn_frame.frame[idx][DST_ADDR] = dst;
+	mn_frame.frame[idx][SRC_ADDR] = MN_ADDR;
+	mn_frame.frame[idx][ACK_TTL] = ttl;
+	mn_frame.frame[idx][FRAME_ID] = mn_frame.frame_id++;
+	//mn_frame.frame[idx][FRAME_DAT] = 0;
+	mn_frame.frame[idx][PAYLOAD_COUNT] = 1;
 
 	if ( ack ) {
 		ttl |= 0x80;
-		mn_frame.frame[idx][PAYLOADSIZE]+= ACK_RET_COUNT;
+		mn_frame.frame[idx][PAYLOAD_COUNT]+= ACK_RET_COUNT;
 	}
 
-	size = size + 4;
+	// calc frame index to put payload
+	size = size + 5;
 	if (size > PAYLOADSIZE) {
 		size = PAYLOADSIZE;
 	}
 
-	for(i = 4; i <size; i++) {
+	for(i = 5; i <size; i++) {
 		mn_frame.frame[idx][i] = *data++;
 	}
 
@@ -122,16 +117,17 @@ int8_t mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ac
 
 // Send frame from buffer to module
 void send_to_mesh(void) {
-	uint8_t i;
-	// make rotate idx;
-	for (i=0; i<PL_BUFF_SIZE; i++) {
-		// Search free stock in buffer frame
-		if ( mn_frame.frame[i][PAYLOADSIZE] ) {
-			mn_frame.frame[i][PAYLOADSIZE]--;
-			mn_send_hw(mn_frame.frame[i]);
-			break;
-		}
+	static uint8_t i;
+
+	// TODO: add timestamp to frame + resend and change frame ID
+
+	if (mn_frame.frame[i][PAYLOAD_COUNT]) {
+		mn_frame.frame[i][PAYLOAD_COUNT]--;
+		mn_send_hw(mn_frame.frame[i]);
 	}
+
+	i++;
+	i = (i & PL_BUFF_SIZE-1);
 }
 
 
@@ -161,9 +157,10 @@ static void mn_retransmit(void) {
 			mn_frame.retframe[0][mn_frame.rframe_idx] = nrf->data_rx[DST_ADDR];
 			mn_frame.retframe[1][mn_frame.rframe_idx] = nrf->data_rx[SRC_ADDR];
 			mn_frame.retframe[2][mn_frame.rframe_idx] = nrf->data_rx[FRAME_ID];
+			//mn_frame.retframe[3][mn_frame.rframe_idx] = nrf->data_rx[FRAME_DAT];
 
-			send = get_free_plidx();
-			if (send != -1) {
+			// Get free index in buffer
+			if (!get_free_plidx(&send)) {
 				cp2buff(nrf->data_rx, PAYLOADSIZE, send);
 			}
 		}
@@ -219,23 +216,13 @@ void mn_decode_frame(void) {
 		// Frame have own SRC addr
 		if( nrf->data_rx[DST_ADDR] == MN_ADDR ) {
 
-			// Check if it's ACK (func no. 0xFF)
-			if(0xFF == nrf->data_rx[4] ) {
-				// for( x = 0; x < ACK_BUFF_SIZE; x++) {
-				// 	if (mn_frame.ackframe[0][x] == nrf->data_rx[SRC_ADDR]) { // check if SRC addr == dst in ACK buffer
-				// 		if (mn_frame.ackframe[1][x] == nrf->data_rx[5]) { // check if Frame ID is correct
-				// 			mn_frame.ack_free++;
-				// 			mn_frame.ackframe[2][x] = 0;
-				// 			break;
-				// 		}
-				// 	}
-				// }
-
+			// Check if it's ACK (func no. is 0xFF)
+			if(0xFF == nrf->data_rx[FRAME_1] ) {
 				// check and mark frame in payload buffer as send
 				for( x = 0; x < PL_BUFF_SIZE; x++) {
 					if (mn_frame.frame[x][SRC_ADDR] == nrf->data_rx[SRC_ADDR]) { // check if SRC addr == dst in ACK buffer
-						if (mn_frame.frame[x][FRAME_ID] == nrf->data_rx[5]) { // check if Frame ID is correct
-							mn_frame.frame[x][SRC_ADDR] = 0;
+						if (mn_frame.frame[x][FRAME_ID] == nrf->data_rx[FRAME_2]) { // check if Frame ID is correct
+							mn_frame.frame[x][PAYLOAD_COUNT] = 0;
 							break;
 						}
 					}

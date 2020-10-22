@@ -24,7 +24,6 @@ int main(void) {
     nrf_reset();
     nrf_init_sw();
     nrf_rx_enable();
-    mn_init();
 
     // Modbus
     modbusInit();
