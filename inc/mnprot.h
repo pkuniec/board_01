@@ -4,31 +4,32 @@
 #define MN_ADDR		9 //3 - odbiorca, 9 - nadawca
 
 // !Buffers size must be pow. 2 ex: 2, 4, 8, 16 ...
-#define PL_BUFF_SIZE	4
-#define CMP_BUFF_SIZE	4
-#define RET_BUFF_SIZE	4
-#define ACK_BUFF_SIZE	4
+#define PL_BUFF_SIZE		4
+#define CMP_BUFF_SIZE		4
+#define RET_BUFF_SIZE		4
+#define ACK_BUFF_SIZE		4
 
-#define ACK_RET_COUNT	4
-#define DEFAULT_TTL		6
-#define PAYLOAD_COUNT	PAYLOADSIZE
-#define PAYLOAD_TIMES	PAYLOADSIZE+1
+#define ACK_RET_COUNT		4
+#define DEFAULT_TTL			6
+#define PAYLOAD_COUNT		PAYLOADSIZE
+#define PAYLOAD_TIMESTAMP	PAYLOADSIZE+1
 
 /* Frame structure */
 /* | Addr. dest (8 bit) | Addr. src. (8 bit) | ACK (1 bit) | TTL (7 bit) | FRAME ID (8 bit) | PAYLOAD (max. 28 bajt) |*/
 
-#define DST_ADDR	0
-#define SRC_ADDR	1
-#define ACK_TTL		2
-#define FRAME_ID	3
-//#define FRAME_DAT	4
-#define FRAME_1		4
-#define FRAME_2		5
+#define DST_ADDR		0
+#define SRC_ADDR		1
+#define ACK_TTL			2
+#define FRAME_ID		3
+//#define FRAME_DAT		4
+#define FRAME_1			4
+#define FRAME_2			5
 
 
 typedef void (*mn_execute_cb)(void);
 
 typedef struct {
+	uint8_t timestamp;
 	uint8_t frame_id;
 	uint8_t frame[PL_BUFF_SIZE][PAYLOADSIZE+2]; // Frame buffer (PAYLOAD + 2 ) 1: count,  2: timestamp
 	uint8_t cmpframe[2][CMP_BUFF_SIZE]; // 0 - src | 1 - frame ID

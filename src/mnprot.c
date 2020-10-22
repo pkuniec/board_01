@@ -91,23 +91,25 @@ int8_t mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ac
 
 	mn_frame.frame[idx][DST_ADDR] = dst;
 	mn_frame.frame[idx][SRC_ADDR] = MN_ADDR;
+	mn_frame.frame[idx][PAYLOAD_COUNT] = 1;
 	mn_frame.frame[idx][ACK_TTL] = ttl;
 	mn_frame.frame[idx][FRAME_ID] = mn_frame.frame_id++;
-	//mn_frame.frame[idx][FRAME_DAT] = 0;
-	mn_frame.frame[idx][PAYLOAD_COUNT] = 1;
+	mn_frame.frame[idx][PAYLOAD_TIMESTAMP] = mn_frame.timestamp;
 
 	if ( ack ) {
 		ttl |= 0x80;
 		mn_frame.frame[idx][PAYLOAD_COUNT]+= ACK_RET_COUNT;
-	}
+		mn_frame.frame[idx][ACK_TTL] = ttl;
+	}	
+
 
 	// calc frame index to put payload
-	size = size + 5;
+	size = size + 4;
 	if (size > PAYLOADSIZE) {
 		size = PAYLOADSIZE;
 	}
 
-	for(i = 5; i <size; i++) {
+	for(i = 4; i <size; i++) {
 		mn_frame.frame[idx][i] = *data++;
 	}
 
@@ -119,15 +121,23 @@ int8_t mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ac
 void send_to_mesh(void) {
 	static uint8_t i;
 
-	// TODO: add timestamp to frame + resend and change frame ID
-
 	if (mn_frame.frame[i][PAYLOAD_COUNT]) {
-		mn_frame.frame[i][PAYLOAD_COUNT]--;
-		mn_send_hw(mn_frame.frame[i]);
+		if (mn_frame.frame[i][PAYLOAD_TIMESTAMP] < mn_frame.timestamp ) {
+			mn_frame.frame[i][PAYLOAD_COUNT]--;
+			mn_frame.frame[i][PAYLOAD_TIMESTAMP] = mn_frame.timestamp + 100;
+			mn_frame.frame[i][FRAME_ID]--;
+			mn_send_hw(mn_frame.frame[i]);
+		}
 	}
 
 	i++;
 	i = (i & PL_BUFF_SIZE-1);
+	mn_frame.timestamp++;
+
+	// if (i == PL_BUFF_SIZE) {
+	// 	i = 0;
+	// 	mn_frame.timestamp++;
+	// }
 }
 
 
@@ -157,7 +167,6 @@ static void mn_retransmit(void) {
 			mn_frame.retframe[0][mn_frame.rframe_idx] = nrf->data_rx[DST_ADDR];
 			mn_frame.retframe[1][mn_frame.rframe_idx] = nrf->data_rx[SRC_ADDR];
 			mn_frame.retframe[2][mn_frame.rframe_idx] = nrf->data_rx[FRAME_ID];
-			//mn_frame.retframe[3][mn_frame.rframe_idx] = nrf->data_rx[FRAME_DAT];
 
 			// Get free index in buffer
 			if (!get_free_plidx(&send)) {
@@ -213,6 +222,7 @@ void mn_decode_frame(void) {
 	uint8_t x;
 
 	if( (nrf->status & RX_DR) ) {
+
 		// Frame have own SRC addr
 		if( nrf->data_rx[DST_ADDR] == MN_ADDR ) {
 
@@ -220,7 +230,7 @@ void mn_decode_frame(void) {
 			if(0xFF == nrf->data_rx[FRAME_1] ) {
 				// check and mark frame in payload buffer as send
 				for( x = 0; x < PL_BUFF_SIZE; x++) {
-					if (mn_frame.frame[x][SRC_ADDR] == nrf->data_rx[SRC_ADDR]) { // check if SRC addr == dst in ACK buffer
+					if (mn_frame.frame[x][DST_ADDR] == nrf->data_rx[SRC_ADDR]) { // check if SRC addr == dst in ACK buffer
 						if (mn_frame.frame[x][FRAME_ID] == nrf->data_rx[FRAME_2]) { // check if Frame ID is correct
 							mn_frame.frame[x][PAYLOAD_COUNT] = 0;
 							break;
