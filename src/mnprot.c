@@ -70,6 +70,30 @@ static int8_t get_free_plidx(uint8_t *idx) {
 }
 
 
+// Cycle send frame to network
+void send_to_mesh(void) {
+	static uint8_t i;
+
+	if (mn_frame.frame[i][PAYLOAD_COUNT]) {
+		if (mn_frame.frame[i][PAYLOAD_TIMESTAMP] < mn_frame.timestamp ) {
+			mn_frame.frame[i][PAYLOAD_COUNT]--;
+			mn_frame.frame[i][PAYLOAD_TIMESTAMP] = mn_frame.timestamp + 10;
+			mn_send_hw(mn_frame.frame[i]);
+			mn_frame.frame[i][FRAME_ID] -= 4; // decrease by 4 frame ID to ensure retransmit by other noods
+		}
+	}
+
+	i++;
+	// i = (i & PL_BUFF_SIZE-1);
+	// mn_frame.timestamp++;
+
+	if (i > PL_BUFF_SIZE-1) {
+		i = 0;
+		mn_frame.timestamp++;
+	}
+}
+
+
 // Send data to mesh network
 // dest: destination addr
 // ttl: TTL hop (0-127)
@@ -94,7 +118,7 @@ int8_t mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ac
 	mn_frame.frame[idx][PAYLOAD_COUNT] = 1;
 	mn_frame.frame[idx][ACK_TTL] = ttl;
 	mn_frame.frame[idx][FRAME_ID] = mn_frame.frame_id++;
-	mn_frame.frame[idx][PAYLOAD_TIMESTAMP] = mn_frame.timestamp;
+	mn_frame.frame[idx][PAYLOAD_TIMESTAMP] = 0;
 
 	if ( ack ) {
 		ttl |= 0x80;
@@ -115,32 +139,6 @@ int8_t mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ac
 
 	return 0;
 }
-
-
-// Send frame from buffer to module
-void send_to_mesh(void) {
-	static uint8_t i;
-
-	if (mn_frame.frame[i][PAYLOAD_COUNT]) {
-		if (mn_frame.frame[i][PAYLOAD_TIMESTAMP] < mn_frame.timestamp ) {
-			mn_frame.frame[i][PAYLOAD_COUNT]--;
-			mn_frame.frame[i][PAYLOAD_TIMESTAMP] = mn_frame.timestamp + 100;
-			mn_frame.frame[i][FRAME_ID]--;
-			mn_send_hw(mn_frame.frame[i]);
-		}
-	}
-
-	i++;
-	i = (i & PL_BUFF_SIZE-1);
-	mn_frame.timestamp++;
-
-	// if (i == PL_BUFF_SIZE) {
-	// 	i = 0;
-	// 	mn_frame.timestamp++;
-	// }
-}
-
-
 
 
 // Retransmit frame to mesh network
@@ -197,13 +195,13 @@ static void mn_execute(uint8_t ack) {
     if( e ) {
         // Save execute frame info in frame buff
         mn_frame.cframe_idx = (++mn_frame.cframe_idx & (CMP_BUFF_SIZE-1) );
-        mn_frame.cmpframe[0][mn_frame.cframe_idx] = nrf->data_rx[SRC_ADDR]; // source addr.
-        mn_frame.cmpframe[1][mn_frame.cframe_idx] = nrf->data_rx[FRAME_ID]; // frame ID
+        mn_frame.cmpframe[0][mn_frame.cframe_idx] = nrf->data_rx[SRC_ADDR]; // Source addr.
+        mn_frame.cmpframe[1][mn_frame.cframe_idx] = nrf->data_rx[FRAME_ID]; // Frame ID
 
-		// If is set ACK, send it
+		// If frame have ACK bit, send ACK
 		if ( (nrf->data_rx[ACK_TTL] & 0x80) && ack) {
 			ack_replay[0] = 0xFF; // ACK patern (func 0xFF)
-			ack_replay[1] = nrf->data_rx[FRAME_ID];
+			ack_replay[1] = nrf->data_rx[FRAME_ID]-4; // Send frame ID -4 (in sending frame ID is decreased by 4 )
 			mn_send( nrf->data_rx[SRC_ADDR], DEFAULT_TTL, ack_replay, 2, 0);
 		}
 
@@ -228,10 +226,12 @@ void mn_decode_frame(void) {
 
 			// Check if it's ACK (func no. is 0xFF)
 			if(0xFF == nrf->data_rx[FRAME_1] ) {
-				// check and mark frame in payload buffer as send
+				// Find and mark frame in payload buffer as recieved
 				for( x = 0; x < PL_BUFF_SIZE; x++) {
-					if (mn_frame.frame[x][DST_ADDR] == nrf->data_rx[SRC_ADDR]) { // check if SRC addr == dst in ACK buffer
-						if (mn_frame.frame[x][FRAME_ID] == nrf->data_rx[FRAME_2]) { // check if Frame ID is correct
+					// check if DST_ADDR in frmae buff == SRC_ADDR from ACK payload
+					if (mn_frame.frame[x][DST_ADDR] == nrf->data_rx[SRC_ADDR]) {
+						// check if Frame ID is correct
+						if (mn_frame.frame[x][FRAME_ID] == nrf->data_rx[FRAME_2]) {
 							mn_frame.frame[x][PAYLOAD_COUNT] = 0;
 							break;
 						}
@@ -239,7 +239,7 @@ void mn_decode_frame(void) {
 				}
 
 			} else {
-			// Execute
+				// Execute
 				mn_execute(1);
 			}
 		} else 	if (255 == nrf->data_rx[DST_ADDR] && nrf->data_rx[SRC_ADDR] != MN_ADDR) {
