@@ -1,7 +1,7 @@
 #ifndef MNPROT_H
 #define MNPROT_H
 
-#define MN_ADDR		9 //3 - odbiorca, 9 - nadawca
+#define MN_ADDR		3 //3 - odbiorca, 9 - nadawca
 
 // !Buffers size must be pow. 2 ex: 2, 4, 8, 16 ...
 #define PL_BUFF_SIZE		4
@@ -9,7 +9,6 @@
 #define RET_BUFF_SIZE		4
 #define ACK_BUFF_SIZE		4
 
-#define ACK_RET_COUNT		4
 #define DEFAULT_TTL			6
 #define PAYLOAD_COUNT		PAYLOADSIZE
 #define PAYLOAD_TIMESTAMP	PAYLOADSIZE+1

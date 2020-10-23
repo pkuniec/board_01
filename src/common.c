@@ -10,7 +10,7 @@
 #include "timer.h"
 
 // for test only
-static uint8_t pload[4] = {'0', '0', '-', '-'};
+static uint8_t pload[4] = {'-', '-', '0', '0'};
 
 
 // Get SYS variable Handler
@@ -71,6 +71,7 @@ void setup(void) {
     os_timer_setfn(0, sys_timer_func, 0);
 }
 
+
 // Simple block delay function
 void delay(uint16_t time) {
 	while( time ) {
@@ -130,21 +131,22 @@ void timer_event(void) {
     }
 }
 
+
 // System timer function
 void sys_timer_func(void *arg) {
 
-//	static uint8_t cnt;
-//	if ( !(cnt%10) ) {
-		if (!mn_send(3, DEFAULT_TTL, pload, 4, 1) ) {
-			if (pload[0] == '9') {
-				pload[0] = '0';
-				pload[1]++;
+	static uint8_t cnt;
+	if ( !((uint8_t)cnt%10) ) {
+		if (!mn_send(3, DEFAULT_TTL, pload, 4, 2) ) {
+			if (pload[3] == '9') {
+				pload[3] = '0';
+				pload[2]++;
 			} else {
-				pload[0]++;
+				pload[3]++;
 			}
 		}
-//	}
-//	cnt++;
+	}
+	cnt++;
 
 	// const uint8_t hello[] = {"--"};
     // uart_cp2txbuf(hello, 2;
