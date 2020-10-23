@@ -11,7 +11,7 @@
 
 
 // for test only
-static uint8_t pload[4] = {'-', '-', '0', '0'};
+static uint8_t pload[4] = {' ', ' ', '0', '0'};
 
 
 // Get SYS variable Handler
@@ -136,9 +136,9 @@ void timer_event(void) {
 // System timer function
 void sys_timer_func(void *arg) {
 
-	static uint8_t cnt;
-	if ( !((uint8_t)cnt%10) ) {
-		if (!mn_send(3, DEFAULT_TTL, pload, 4, 2) ) {
+	// static uint8_t cnt;
+	// if ( !((uint8_t)cnt%10) ) {
+		if (!mn_send(3, DEFAULT_TTL, pload, 4, 5) ) {
 			if (pload[3] == '9') {
 				pload[3] = '0';
 				pload[2]++;
@@ -146,8 +146,8 @@ void sys_timer_func(void *arg) {
 				pload[3]++;
 			}
 		}
-	}
-	cnt++;
+	// }
+	// cnt++;
 
 	// const uint8_t hello[] = {"--"};
     // uart_cp2txbuf(hello, 2;
@@ -205,6 +205,11 @@ void nrf_recv(void) {
 void mn_exec(void) {
     nrf_t *nrf = GetNrfHandler();
     //Debug only
+	// uart_putc(nrf->data_rx[0]+'0');
+	// uart_putc(' ');
+	// uart_putc(nrf->data_rx[1]+'0');
+	// uart_putc('#');
+	// uart_putc(nrf->data_rx[3]+'0');
     for (uint8_t x=4; x<8; x++) {
         uart_putc(nrf->data_rx[x]);
 	}

@@ -1,11 +1,11 @@
 #ifndef MNPROT_H
 #define MNPROT_H
 
-#define MN_ADDR		3 //3 - odbiorca, 9 - nadawca
+#define MN_ADDR		9 //3 - odbiorca, 9 - nadawca
 
 // !Buffers size must be pow. 2 ex: 2, 4, 8, 16 ...
 #define PL_BUFF_SIZE		4
-#define CMP_BUFF_SIZE		6
+#define CMP_BUFF_SIZE		8
 #define RET_BUFF_SIZE		4
 
 #define DEFAULT_TTL			6
@@ -31,9 +31,9 @@ typedef struct {
 	uint8_t timestamp;
 	uint8_t frame_id;
 	uint8_t frame[PL_BUFF_SIZE][PAYLOADSIZE+2]; // Frame buffer (PAYLOAD + 2 ) 1: count,  2: timestamp
-	uint8_t cmpframe[2][CMP_BUFF_SIZE]; // 0 - src | 1 - frame ID
+	uint8_t cmpframe[CMP_BUFF_SIZE][2]; // 0 - src | 1 - frame ID
 	uint8_t cframe_idx;
-	uint8_t retframe[3][RET_BUFF_SIZE]; // 0 - dst | 1 - src | 2 - frame ID | (3 - frame data)
+	uint8_t retframe[RET_BUFF_SIZE][3]; // 0 - dst | 1 - src | 2 - frame ID | (3 - frame data)
 	uint8_t rframe_idx;
 	mn_execute_cb execute;
 } mn_frame_t;

@@ -75,29 +75,22 @@ static int8_t get_free_plidx(uint8_t *idx) {
 void send_to_mesh(void) {
 	static uint8_t i;
 	uint8_t z = PL_BUFF_SIZE;
-	uint8_t tmp, ack;
 
 	while (z--) {
 		i++;
 		i = (i & PL_BUFF_SIZE-1);
 
-		tmp = mn_frame.frame[i][PAYLOAD_COUNT] & 0x7F;
-		ack = mn_frame.frame[i][PAYLOAD_COUNT] & 0x80;
-
-		if (tmp) {
+		if (mn_frame.frame[i][PAYLOAD_COUNT]) {
 			if (mn_frame.frame[i][PAYLOAD_TIMESTAMP] < mn_frame.timestamp ) {
-				tmp--;
-				mn_frame.frame[i][PAYLOAD_COUNT] = tmp | ack;
+				mn_frame.frame[i][PAYLOAD_COUNT]--;
 				mn_frame.frame[i][PAYLOAD_TIMESTAMP] = mn_frame.timestamp + 50;
 				mn_send_hw(mn_frame.frame[i]);
 				break;
 			}
-		} else if (ack) {
-			// Repack frame and send
-			mn_frame.frame[i][PAYLOAD_COUNT] = 2;
-			mn_frame.frame[i][FRAME_ID] = mn_frame.frame_id++;
-			mn_frame.frame[i][PAYLOAD_TIMESTAMP] = 0;
+		} else {
+			mn_frame.frame[i][PAYLOAD_COUNT] = 0;
 		}
+
 	}
 
 	mn_frame.timestamp++;
@@ -132,7 +125,7 @@ int8_t mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ac
 
 	if ( ack ) {
 		ttl |= 0x80;
-		mn_frame.frame[idx][PAYLOAD_COUNT] = ack | 0x80;
+		mn_frame.frame[idx][PAYLOAD_COUNT] = ack;
 		mn_frame.frame[idx][ACK_TTL] = ttl;
 	}	
 
@@ -169,9 +162,9 @@ static void mn_retransmit(void) {
 			// 	break;
 			// }
 
-			if( mn_frame.retframe[0][x] == nrf->data_rx[DST_ADDR] ) {
-				if( mn_frame.retframe[1][x] == nrf->data_rx[SRC_ADDR] ) {
-					if ( mn_frame.retframe[2][x] == nrf->data_rx[FRAME_ID] ) {
+			if( mn_frame.retframe[x][0] == nrf->data_rx[DST_ADDR] ) {
+				if( mn_frame.retframe[x][1] == nrf->data_rx[SRC_ADDR] ) {
+					if ( mn_frame.retframe[x][2] == nrf->data_rx[FRAME_ID] ) {
 						send = 0;
 						break;
 					}
@@ -180,10 +173,11 @@ static void mn_retransmit(void) {
 		}
 
 		if( send ) {
-			mn_frame.rframe_idx = (++mn_frame.rframe_idx & (RET_BUFF_SIZE-1) );
-			mn_frame.retframe[0][mn_frame.rframe_idx] = nrf->data_rx[DST_ADDR];
-			mn_frame.retframe[1][mn_frame.rframe_idx] = nrf->data_rx[SRC_ADDR];
-			mn_frame.retframe[2][mn_frame.rframe_idx] = nrf->data_rx[FRAME_ID];
+			mn_frame.rframe_idx++;
+			mn_frame.rframe_idx = (mn_frame.rframe_idx & (RET_BUFF_SIZE-1) );
+			mn_frame.retframe[mn_frame.rframe_idx][0] = nrf->data_rx[DST_ADDR];
+			mn_frame.retframe[mn_frame.rframe_idx][1] = nrf->data_rx[SRC_ADDR];
+			mn_frame.retframe[mn_frame.rframe_idx][2] = nrf->data_rx[FRAME_ID];
 
 			// Get free index in buffer
 			if (!get_free_plidx(&send)) {
@@ -205,13 +199,13 @@ static void mn_execute(uint8_t ack) {
 
 	// Check if frame already have been executed
 	for( x = 0; x < CMP_BUFF_SIZE; x++) {
-		// if ( (mn_frame.cmpframe[0][x] == nrf->data_rx[SRC_ADDR]) && (mn_frame.cmpframe[1][x] == nrf->data_rx[FRAME_ID]) ) {
+		// if ( (mn_frame.cmpframe[x][0] == nrf->data_rx[SRC_ADDR]) && (mn_frame.cmpframe[x][1] == nrf->data_rx[FRAME_ID]) ) {
 		// 	e = 0;
 		// 	break;
 		// }
 
-		if ( mn_frame.cmpframe[0][x] == nrf->data_rx[SRC_ADDR] ) {
-			if ( mn_frame.cmpframe[1][x] == nrf->data_rx[FRAME_ID] ) {
+		if ( mn_frame.cmpframe[x][0] == nrf->data_rx[SRC_ADDR] ) {
+			if ( mn_frame.cmpframe[x][1] == nrf->data_rx[FRAME_ID] ) {
 				e = 0;
 				break;
 			}
@@ -220,9 +214,10 @@ static void mn_execute(uint8_t ack) {
 
     if( e ) {
         // Save execute frame info in frame buff
-        mn_frame.cframe_idx = (++mn_frame.cframe_idx & (CMP_BUFF_SIZE-1) );
-        mn_frame.cmpframe[0][mn_frame.cframe_idx] = nrf->data_rx[SRC_ADDR]; // Source addr.
-        mn_frame.cmpframe[1][mn_frame.cframe_idx] = nrf->data_rx[FRAME_ID]; // Frame ID
+		mn_frame.cframe_idx++;
+        mn_frame.cframe_idx = (mn_frame.cframe_idx & (CMP_BUFF_SIZE-1) );
+        mn_frame.cmpframe[mn_frame.cframe_idx][0] = nrf->data_rx[SRC_ADDR]; // Source addr.
+        mn_frame.cmpframe[mn_frame.cframe_idx][1] = nrf->data_rx[FRAME_ID]; // Frame ID
 
 		// If frame have ACK bit, send ACK
 		if ( (nrf->data_rx[ACK_TTL] & 0x80) && ack) {
