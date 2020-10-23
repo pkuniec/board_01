@@ -13,6 +13,7 @@
 #include "uart.h"
 #include "spi.h"
 
+
 // Static global
 static nrf_t nrf;
 

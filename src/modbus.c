@@ -202,6 +202,7 @@ int8_t mbUnregisterFunc(uint8_t num) {
 }
 
 
+
 // -----------------------------
 // Modbus Funcion implrmrntation
 // -----------------------------
