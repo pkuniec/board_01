@@ -1,7 +1,9 @@
 #ifndef TIMER__H
 #define TIMER__H
 
+
 typedef void os_TimerFunc(void* arg);
+
 
 typedef struct _os_TIMER_ {
     struct _os_TIMER_ *timer_next;

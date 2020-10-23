@@ -66,4 +66,5 @@ void output_set(uint8_t num, uint8_t mode);
 void nrf_recv(void);
 void mn_exec(void);
 
+
 #endif

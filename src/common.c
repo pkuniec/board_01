@@ -9,6 +9,7 @@
 #include "modbus.h"
 #include "timer.h"
 
+
 // for test only
 static uint8_t pload[4] = {'-', '-', '0', '0'};
 

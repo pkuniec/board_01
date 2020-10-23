@@ -12,6 +12,7 @@
 #include "nrf24l01_mem.h"
 #include "mnprot.h"
 
+
 // Static global
 static mn_frame_t mn_frame;
 
