@@ -5,9 +5,8 @@
 
 // !Buffers size must be pow. 2 ex: 2, 4, 8, 16 ...
 #define PL_BUFF_SIZE		4
-#define CMP_BUFF_SIZE		4
+#define CMP_BUFF_SIZE		6
 #define RET_BUFF_SIZE		4
-#define ACK_BUFF_SIZE		4
 
 #define DEFAULT_TTL			6
 #define PAYLOAD_COUNT		PAYLOADSIZE
