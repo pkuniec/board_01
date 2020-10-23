@@ -73,24 +73,33 @@ static int8_t get_free_plidx(uint8_t *idx) {
 // Cycle send frame to network
 void send_to_mesh(void) {
 	static uint8_t i;
+	uint8_t z = PL_BUFF_SIZE;
+	uint8_t tmp, ack;
 
-	if (mn_frame.frame[i][PAYLOAD_COUNT]) {
-		if (mn_frame.frame[i][PAYLOAD_TIMESTAMP] < mn_frame.timestamp ) {
-			mn_frame.frame[i][PAYLOAD_COUNT]--;
-			mn_frame.frame[i][PAYLOAD_TIMESTAMP] = mn_frame.timestamp + 10;
-			mn_send_hw(mn_frame.frame[i]);
-			mn_frame.frame[i][FRAME_ID] -= 4; // decrease by 4 frame ID to ensure retransmit by other noods
+	while (z--) {
+		i++;
+		i = (i & PL_BUFF_SIZE-1);
+
+		tmp = mn_frame.frame[i][PAYLOAD_COUNT] & 0x7F;
+		ack = mn_frame.frame[i][PAYLOAD_COUNT] & 0x80;
+
+		if (tmp) {
+			if (mn_frame.frame[i][PAYLOAD_TIMESTAMP] < mn_frame.timestamp ) {
+				tmp--;
+				mn_frame.frame[i][PAYLOAD_COUNT] = tmp | ack;
+				mn_frame.frame[i][PAYLOAD_TIMESTAMP] = mn_frame.timestamp + 100;
+				mn_send_hw(mn_frame.frame[i]);
+				break;
+			}
+		} else if (ack) {
+			// Repack frame and send
+			mn_frame.frame[i][PAYLOAD_COUNT] = 2;
+			mn_frame.frame[i][FRAME_ID] = mn_frame.frame_id++;
+			mn_frame.frame[i][PAYLOAD_TIMESTAMP] = 0;
 		}
 	}
 
-	i++;
-	// i = (i & PL_BUFF_SIZE-1);
-	// mn_frame.timestamp++;
-
-	if (i > PL_BUFF_SIZE-1) {
-		i = 0;
-		mn_frame.timestamp++;
-	}
+	mn_frame.timestamp++;
 }
 
 
@@ -122,7 +131,8 @@ int8_t mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ac
 
 	if ( ack ) {
 		ttl |= 0x80;
-		mn_frame.frame[idx][PAYLOAD_COUNT]+= ACK_RET_COUNT;
+		mn_frame.frame[idx][PAYLOAD_COUNT]+= ack;
+		mn_frame.frame[idx][PAYLOAD_COUNT] |= 0x80;
 		mn_frame.frame[idx][ACK_TTL] = ttl;
 	}	
 
@@ -201,8 +211,9 @@ static void mn_execute(uint8_t ack) {
 		// If frame have ACK bit, send ACK
 		if ( (nrf->data_rx[ACK_TTL] & 0x80) && ack) {
 			ack_replay[0] = 0xFF; // ACK patern (func 0xFF)
-			ack_replay[1] = nrf->data_rx[FRAME_ID]-4; // Send frame ID -4 (in sending frame ID is decreased by 4 )
+			ack_replay[1] = nrf->data_rx[FRAME_ID]; // Add frame ID 
 			mn_send( nrf->data_rx[SRC_ADDR], DEFAULT_TTL, ack_replay, 2, 0);
+			send_to_mesh();
 		}
 
 	    // Execute
