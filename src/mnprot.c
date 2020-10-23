@@ -228,7 +228,7 @@ static void mn_execute(uint8_t ack) {
 			ack_replay[0] = 0xFF; // ACK patern (func 0xFF)
 			ack_replay[1] = nrf->data_rx[FRAME_ID]; // Add frame ID 
 			mn_send( nrf->data_rx[SRC_ADDR], DEFAULT_TTL, ack_replay, 2, 0);
-			send_to_mesh();
+			//send_to_mesh();
 		}
 
 	    // Execute

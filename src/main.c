@@ -28,7 +28,7 @@ int main(void) {
     // Modbus
     modbusInit();
     modbusReset();
-    modbusSetAddres(0x01);
+    modbusSetAddres(MN_ADDR);
 
     mbRegisterFunc(0x05, modbusFunc05);
     mbRegisterFunc(0x03, modbusFunc03);
