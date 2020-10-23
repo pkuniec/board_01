@@ -87,7 +87,7 @@ void send_to_mesh(void) {
 			if (mn_frame.frame[i][PAYLOAD_TIMESTAMP] < mn_frame.timestamp ) {
 				tmp--;
 				mn_frame.frame[i][PAYLOAD_COUNT] = tmp | ack;
-				mn_frame.frame[i][PAYLOAD_TIMESTAMP] = mn_frame.timestamp + 100;
+				mn_frame.frame[i][PAYLOAD_TIMESTAMP] = mn_frame.timestamp + 50;
 				mn_send_hw(mn_frame.frame[i]);
 				break;
 			}
@@ -131,8 +131,7 @@ int8_t mn_send(uint8_t dst, uint8_t ttl, uint8_t *data, uint8_t size, uint8_t ac
 
 	if ( ack ) {
 		ttl |= 0x80;
-		mn_frame.frame[idx][PAYLOAD_COUNT]+= ack;
-		mn_frame.frame[idx][PAYLOAD_COUNT] |= 0x80;
+		mn_frame.frame[idx][PAYLOAD_COUNT] = ack | 0x80;
 		mn_frame.frame[idx][ACK_TTL] = ttl;
 	}	
 
@@ -160,13 +159,22 @@ static void mn_retransmit(void) {
 
 	// Decrement TTL
 	if( x-- ) {
-		nrf->data_rx[ACK_TTL] = x | ack;
+		nrf->data_rx[ACK_TTL] = ack | x;
 
 		// Check if frame was retransmit
 		for(x=0; x<RET_BUFF_SIZE; x++) {
-			if( (mn_frame.retframe[0][x] == nrf->data_rx[DST_ADDR]) && (mn_frame.retframe[1][x] == nrf->data_rx[SRC_ADDR]) && (mn_frame.retframe[2][x] == nrf->data_rx[FRAME_ID]) ) {
-				send = 0;
-				break;
+			// if( (mn_frame.retframe[0][x] == nrf->data_rx[DST_ADDR]) && (mn_frame.retframe[1][x] == nrf->data_rx[SRC_ADDR]) && (mn_frame.retframe[2][x] == nrf->data_rx[FRAME_ID]) ) {
+			// 	send = 0;
+			// 	break;
+			// }
+
+			if( mn_frame.retframe[0][x] == nrf->data_rx[DST_ADDR] ) {
+				if( mn_frame.retframe[1][x] == nrf->data_rx[SRC_ADDR] ) {
+					if ( mn_frame.retframe[2][x] == nrf->data_rx[FRAME_ID] ) {
+						send = 0;
+						break;
+					}
+				}
 			}
 		}
 
@@ -196,9 +204,16 @@ static void mn_execute(uint8_t ack) {
 
 	// Check if frame already have been executed
 	for( x = 0; x < CMP_BUFF_SIZE; x++) {
-		if ( (mn_frame.cmpframe[0][x] == nrf->data_rx[SRC_ADDR]) && (mn_frame.cmpframe[1][x] == nrf->data_rx[FRAME_ID]) ) {
-			e = 0;
-			break;
+		// if ( (mn_frame.cmpframe[0][x] == nrf->data_rx[SRC_ADDR]) && (mn_frame.cmpframe[1][x] == nrf->data_rx[FRAME_ID]) ) {
+		// 	e = 0;
+		// 	break;
+		// }
+
+		if ( mn_frame.cmpframe[0][x] == nrf->data_rx[SRC_ADDR] ) {
+			if ( mn_frame.cmpframe[1][x] == nrf->data_rx[FRAME_ID] ) {
+				e = 0;
+				break;
+			}
 		}
 	}
 
